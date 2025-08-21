@@ -1,0 +1,112 @@
+'use client'
+
+import api from '@/lib/api'
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from '@mui/material'
+import dayjs from 'dayjs'
+import { useEffect, useState } from 'react'
+
+interface DarfEntry {
+  label: string
+  base: number
+  tax: number
+  darf: number
+}
+
+interface DarfReportItem {
+  month: string // format YYYY-MM
+  entries: DarfEntry[]
+}
+
+interface Props {
+  portfolioId: number
+  fiscalYear: number
+}
+
+export default function DarfSummaryTable({ portfolioId, fiscalYear }: Props) {
+  const [data, setData] = useState<DarfReportItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true)
+      try {
+        const res = await api.get(`/portfolio/${portfolioId}/income_tax/darf`, {
+          params: { fiscal_year: fiscalYear },
+        })
+        setData(res.data)
+      } catch (err) {
+        console.error('Erro ao buscar dados do DARF', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [portfolioId, fiscalYear])
+
+  if (loading) return null
+
+  return (
+    <Box mt={4}>
+      <Typography variant="h6" gutterBottom>
+        Meu DARF ({fiscalYear})
+      </Typography>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Mês/Ano</TableCell>
+              <TableCell>Ativos</TableCell>
+              <TableCell align="right">Base de cálculo</TableCell>
+              <TableCell align="right">IR</TableCell>
+              <TableCell align="right">DARF</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((item, monthIndex) =>
+              item.entries.map((entry, i) => (
+                <TableRow
+                  key={`${item.month}-${entry.label}`}
+                  sx={{
+                    backgroundColor: monthIndex % 2 === 0 ? 'background.paper' : 'action.hover',
+                  }}
+                >
+                  <TableCell>{i === 0 ? dayjs(item.month).format('MMM/YYYY') : ''}</TableCell>
+                  <TableCell>{entry.label}</TableCell>
+                  <TableCell align="right">
+                    {entry.base.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    })}
+                  </TableCell>
+                  <TableCell align="right">
+                    {entry.tax.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    })}
+                  </TableCell>
+                  <TableCell align="right">
+                    {entry.darf > 0
+                      ? entry.darf.toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })
+                      : 'Isento'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  )
+}
