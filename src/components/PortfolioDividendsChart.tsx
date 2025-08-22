@@ -7,6 +7,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -20,35 +21,49 @@ interface Props {
   size?: number
 }
 
-export default function PortfolioDividendsChart({ dividends, selected, size = 370 }: Props) {
-  const grouped = dividends.reduce<Record<string, number>>((acc, curr) => {
-    if (selected !== 'portfolio' && curr.category !== selected) {
-      return acc
-    }
+export default function PortfolioDividendsChartByYear({ dividends, selected, size = 370 }: Props) {
+  // filtra pelo selected
+  const filtered =
+    selected === 'portfolio' ? dividends : dividends.filter((d) => d.category === selected)
 
-    const monthKey = dayjs(curr.date).format('MM/YY')
-    acc[monthKey] = (acc[monthKey] || 0) + curr.amount
-    return acc
-  }, {})
+  // anos: atual (pelo dado mais recente) e anterior
+  const mostRecent = filtered.reduce<Dividend | undefined>(
+    (a, b) => (!a || dayjs(a.date).isBefore(b.date) ? b : a),
+    undefined
+  )
+  const currentYear = mostRecent ? dayjs(mostRecent.date).year() : dayjs().year()
+  const previousYear = currentYear - 1
 
-  const data = Object.entries(grouped).map(([date, value]) => ({ date, value })) || [
-    { date: '', value: 0 },
-  ]
+  // monta 12 meses e acumula valores por mês/ano (somente anos prev/atual)
+  const monthlyMap: Record<string, { month: string; [year: number]: number }> = {}
+  for (let i = 0; i < 12; i++) {
+    const m = dayjs().month(i).format('MMM')
+    monthlyMap[m] = { month: m }
+  }
 
-  const values = data.map((d) => d.value)
+  for (const d of filtered) {
+    const dt = dayjs(d.date)
+    const y = dt.year()
+    if (y !== previousYear && y !== currentYear) continue
+    const m = dt.format('MMM')
+    monthlyMap[m][y] = (monthlyMap[m][y] || 0) + d.amount
+  }
+
+  const data = Object.values(monthlyMap)
+
+  // eixo Y e linha de referência (média simples das barras existentes)
+  const values = data.flatMap((r) => [r[previousYear] ?? 0, r[currentYear] ?? 0])
   const max = Math.max(...values)
   const upper = Math.ceil((max || 1) * 1.5)
   const avg = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0
 
   const yTicks: number[] = []
   const tickStep = 50
-  for (let i = 0; i <= upper; i += tickStep) {
-    yTicks.push(i)
-  }
+  for (let i = 0; i <= upper; i += tickStep) yTicks.push(i)
 
-  return (
-    <Box position="relative" height={size}>
-      {data.length === 0 && (
+  if (!filtered.length) {
+    return (
+      <Box position="relative" height={size}>
         <Box
           position="absolute"
           top={0}
@@ -58,17 +73,21 @@ export default function PortfolioDividendsChart({ dividends, selected, size = 37
           display="flex"
           alignItems="center"
           justifyContent="center"
-          zIndex={1}
         >
           <Typography variant="subtitle1" color="text.secondary">
             Ativo não recebeu dividendos no período
           </Typography>
         </Box>
-      )}
+      </Box>
+    )
+  }
+
+  return (
+    <Box position="relative" height={size}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ left: 48 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
-          <XAxis dataKey="date" />
+          <XAxis dataKey="month" />
           <YAxis
             orientation="right"
             domain={[0, upper]}
@@ -81,7 +100,14 @@ export default function PortfolioDividendsChart({ dividends, selected, size = 37
               `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`
             }
           />
-          <Bar dataKey="value" fill="#1976d2" radius={[4, 4, 0, 0]} />
+          <Legend />
+          <Bar
+            dataKey={previousYear}
+            name={`${previousYear}`}
+            fill="#8884d8"
+            radius={[4, 4, 0, 0]}
+          />
+          <Bar dataKey={currentYear} name={`${currentYear}`} fill="#82ca9d" radius={[4, 4, 0, 0]} />
           <ReferenceLine y={avg} stroke="#333" strokeDasharray="5 5" strokeWidth={1.5} />
         </BarChart>
       </ResponsiveContainer>
