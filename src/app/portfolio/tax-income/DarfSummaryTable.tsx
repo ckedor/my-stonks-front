@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react'
 
 interface DarfEntry {
   label: string
+  gross_sales: number
   base: number
   tax: number
   darf: number
@@ -54,8 +55,22 @@ export default function DarfSummaryTable({ portfolioId, fiscalYear }: Props) {
 
   if (loading) return null
 
+  const formatValue = (value: number) =>
+    value === 0
+      ? '-'
+      : value.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        })
+
+  const profitColor = (value: number) => {
+    if (value > 0) return '#2e7d32'
+    if (value < 0) return '#c62828'
+    return 'inherit'
+  }
+
   return (
-    <Box mt={4}>
+    <Box mt={4} mb={2}>
       <Typography variant="h6" gutterBottom>
         Meu DARF ({fiscalYear})
       </Typography>
@@ -65,8 +80,9 @@ export default function DarfSummaryTable({ portfolioId, fiscalYear }: Props) {
             <TableRow>
               <TableCell>Mês/Ano</TableCell>
               <TableCell>Ativos</TableCell>
-              <TableCell align="right">Base de cálculo</TableCell>
-              <TableCell align="right">IR</TableCell>
+              <TableCell align="right">Total Vendas</TableCell>
+              <TableCell align="right">Lucro Realizado</TableCell>
+              <TableCell align="right">Alíquota</TableCell>
               <TableCell align="right">DARF</TableCell>
             </TableRow>
           </TableHead>
@@ -81,25 +97,15 @@ export default function DarfSummaryTable({ portfolioId, fiscalYear }: Props) {
                 >
                   <TableCell>{i === 0 ? dayjs(item.month).format('MMM/YYYY') : ''}</TableCell>
                   <TableCell>{entry.label}</TableCell>
-                  <TableCell align="right">
-                    {entry.base.toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                  <TableCell align="right">{formatValue(entry.gross_sales)}</TableCell>
+                  <TableCell align="right" sx={{ color: profitColor(entry.base) }}>
+                    {formatValue(entry.base)}
                   </TableCell>
                   <TableCell align="right">
-                    {entry.tax.toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                    {entry.darf > 0 ? ((entry.darf / entry.base) * 100).toFixed(0) + '%' : '-'}
                   </TableCell>
                   <TableCell align="right">
-                    {entry.darf > 0
-                      ? entry.darf.toLocaleString('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        })
-                      : 'Isento'}
+                    {entry.darf > 0 ? formatValue(entry.darf) : 'Isento'}
                   </TableCell>
                 </TableRow>
               ))

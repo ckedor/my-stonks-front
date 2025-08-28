@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react'
 
 interface TaxReportItem {
   month: string // format YYYY-MM
+  gross_sales: number
   realized_profit: number
   accumulated_loss: number
   tax_due: number
@@ -52,6 +53,20 @@ export default function FIITaxIncome({ portfolioId, fiscalYear }: Props) {
 
   if (loading) return null
 
+  const formatValue = (value: number) =>
+    value === 0
+      ? '-'
+      : value.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        })
+
+  const profitColor = (value: number) => {
+    if (value > 0) return '#2e7d32'
+    if (value < 0) return '#c62828'
+    return 'inherit'
+  }
+
   return (
     <Box mt={4}>
       <Typography variant="h6" gutterBottom>
@@ -62,8 +77,10 @@ export default function FIITaxIncome({ portfolioId, fiscalYear }: Props) {
           <TableHead>
             <TableRow>
               <TableCell>Mês</TableCell>
+              <TableCell align="right">Total Vendas</TableCell>
               <TableCell align="right">Lucro Realizado</TableCell>
               <TableCell align="right">Prejuízo Acumulado</TableCell>
+              <TableCell align="right">Alíquota</TableCell>
               <TableCell align="right">IR Devido</TableCell>
             </TableRow>
           </TableHead>
@@ -71,21 +88,17 @@ export default function FIITaxIncome({ portfolioId, fiscalYear }: Props) {
             {data.map((item) => (
               <TableRow key={item.month}>
                 <TableCell>{dayjs(item.month).format('MMM/YYYY')}</TableCell>
-                <TableCell align="right">
-                  {item.realized_profit.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
+                <TableCell align="right">{formatValue(item.gross_sales)}</TableCell>
+                <TableCell align="right" sx={{ color: profitColor(item.realized_profit) }}>
+                  {formatValue(item.realized_profit)}
                 </TableCell>
+                <TableCell align="right">{formatValue(item.accumulated_loss)}</TableCell>
                 <TableCell align="right">
-                  {item.accumulated_loss.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
+                  {item.tax_due > 0
+                    ? ((item.tax_due / item.realized_profit) * 100).toFixed(0) + '%'
+                    : '-'}
                 </TableCell>
-                <TableCell align="right">
-                  {item.tax_due.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </TableCell>
+                <TableCell align="right">{formatValue(item.tax_due)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
