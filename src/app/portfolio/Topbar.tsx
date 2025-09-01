@@ -66,7 +66,7 @@ export default function Topbar() {
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             {loading ? (
               <CircularProgress size={24} />
-            ) : portfolios.length > 0 ? (
+            ) : (
               <Select
                 value={selected ?? ''}
                 onChange={(e) => {
@@ -114,7 +114,7 @@ export default function Topbar() {
                   </Box>
                 </MenuItem>
               </Select>
-            ) : null}
+            )}
 
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
               <AccountCircle />
