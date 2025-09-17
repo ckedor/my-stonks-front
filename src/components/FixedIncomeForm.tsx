@@ -133,7 +133,7 @@ export default function FixedIncomeForm({ open, assetTypeId, onClose }: Props) {
         asset_type_id: assetTypeIdState,
         fixed_income_type_id: fiTypeId,
         index_id: isPostFixed ? indexId : null,
-        fee: Number(fee),
+        fee: Number(fee) / 100,
         maturity_date: maturity.format('YYYY-MM-DD'),
       }
       const resp = await api.post('/assets/fixed_income', payload)
@@ -187,7 +187,7 @@ export default function FixedIncomeForm({ open, assetTypeId, onClose }: Props) {
             </FormControl>
 
             <FormControl fullWidth error={touched && fiTypeId === ''}>
-              <InputLabel>Tipo (pré / pós / etc.)</InputLabel>
+              <InputLabel>Tipo</InputLabel>
               <Select value={fiTypeId} label="Tipo" onChange={(e) => setFiTypeId(Number(e.target.value))}>
                 {fiTypes.map((t) => (
                   <MenuItem key={t.id} value={t.id}>
