@@ -8,6 +8,7 @@ import ThemeRegistry from '@/contexts/ThemeRegistry'
 import { Box } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import 'dayjs/locale/pt-br'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 
@@ -27,7 +28,9 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
 
   return (
     <ThemeRegistry>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider 
+        dateAdapter={AdapterDayjs}
+        adapterLocale="pt-br">
         <PageTitleProvider>
           <PortfolioProvider>
             <PortfolioReturnsProvider>
