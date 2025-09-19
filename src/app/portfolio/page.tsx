@@ -77,7 +77,6 @@ export default function PortfolioOverviewPage() {
     fetchData()
   }, [selectedPortfolio?.id])
 
-  // Atualiza selectedBenchmark automaticamente com base na selectedCategory
   useEffect(() => {
     if (selectedCategory === 'portfolio') {
       setSelectedBenchmark('CDI')
@@ -139,10 +138,10 @@ export default function PortfolioOverviewPage() {
   return (
     <Box>
       <Grid container direction="row">
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 12, lg: 6}}>
           <PositionPieChart positions={positions} selectedCategory={selectedCategory} />
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }} display="flex" justifyContent="center" alignItems="center">
+        <Grid size={{ xs: 12, md: 12, lg: 6 }} display="flex" justifyContent="center" alignItems="center">
           <PositionTable
             positions={positions}
             onCategorySelect={setSelectedCategory}
@@ -152,7 +151,7 @@ export default function PortfolioOverviewPage() {
       </Grid>
 
       <Grid container direction="row" mt={1}>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 12, lg: 12, xl: 6 }}>
           <PortfolioReturnsChart
             size={380}
             selectedCategory={selectedCategory}
@@ -160,7 +159,7 @@ export default function PortfolioOverviewPage() {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 12, lg: 12, xl: 6 }}>
           <Stack direction="row" justifyContent="flex-end" mt={2.5} mb={1.8} pr={1.2} spacing={2}>
             <Typography
               variant="body2"

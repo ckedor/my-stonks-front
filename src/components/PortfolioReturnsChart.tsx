@@ -189,7 +189,7 @@ export default function PortfolioReturnsChart({
             }}
             variant="standard"
             size="small"
-            sx={{ minWidth: 100, ml: 2, fontSize: 14 }}
+            sx={{ minWidth: 50, ml: 1, fontSize: 14 }}
             renderValue={(selected) => selected.map(mapDisplayName).join(', ')}
           >
             {Object.keys(categoryReturns).map((cat) => (
@@ -210,7 +210,7 @@ export default function PortfolioReturnsChart({
             }}
             variant="standard"
             size="small"
-            sx={{ minWidth: 100, ml: 4, fontSize: 14 }}
+            sx={{ minWidth: 50, ml: 2, fontSize: 14 }}
             renderValue={(selected) => selected.join(', ')}
           >
             {Object.keys(benchmarks).map((key) => (
@@ -231,7 +231,7 @@ export default function PortfolioReturnsChart({
             }}
             variant="standard"
             size="small"
-            sx={{ minWidth: 100, ml: 4, fontSize: 14 }}
+            sx={{ minWidth: 50, ml: 2, fontSize: 14 }}
             renderValue={(selected) => selected.join(', ')}
           >
             {Object.keys(assetReturns).map((key) => (
@@ -244,12 +244,12 @@ export default function PortfolioReturnsChart({
         </Box>
 
         {/* Timeframes */}
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={1}>
           {ranges.map((r) => (
             <Typography
               key={r.value}
               onClick={() => setRange(r.value)}
-              sx={{ cursor: 'pointer', fontWeight: range === r.value ? 700 : 400 }}
+              sx={{ cursor: 'pointer', fontWeight: range === r.value ? 700 : 400, fontSize: 13}}
             >
               {r.label}
             </Typography>
