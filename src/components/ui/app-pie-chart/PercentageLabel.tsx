@@ -25,7 +25,7 @@ export default function PercentageLabel({
       fontSize={12}
       style={{ pointerEvents: 'none' }}
     >
-      {`${(percent! * 100).toFixed(1)}%`}
+      {`${(Number(percent) * 100).toFixed(1)}%`}
     </text>
   )
 }

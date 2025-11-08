@@ -1,8 +1,8 @@
 
-import { ASSET_TYPES } from '@/app/constants/assetTypes'
 import PortfolioPatrimonyChart from '@/components/PortfolioPatrimonyChart'
 import PortfolioReturnsChart from '@/components/PortfolioReturnsChart'
 import Trades from '@/components/Trades'
+import { ASSET_TYPES } from '@/constants/assetTypes'
 import { usePageTitle } from '@/contexts/PageTitleContext'
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
