@@ -1,18 +1,17 @@
-'use client'
 
 import { Dividend } from '@/types'
 import { Box, Typography } from '@mui/material'
 import dayjs from 'dayjs'
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Legend,
+    ReferenceLine,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from 'recharts'
 
 interface Props {

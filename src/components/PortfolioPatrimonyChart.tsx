@@ -1,17 +1,16 @@
-'use client'
 
 import { PatrimonyEntry } from '@/types'
 import { Box } from '@mui/material'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    CartesianGrid,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from 'recharts'
 
 interface Props {

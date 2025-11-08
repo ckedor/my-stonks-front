@@ -1,4 +1,3 @@
-'use client'
 
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import { usePortfolioReturns } from '@/contexts/PortfolioReturnsContext'
@@ -7,14 +6,14 @@ import dayjs from 'dayjs'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  CartesianGrid,
-  ComposedChart,
-  Legend,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    CartesianGrid,
+    ComposedChart,
+    Legend,
+    Line,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from 'recharts'
 
 dayjs.extend(isSameOrAfter)

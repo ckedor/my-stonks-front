@@ -1,4 +1,3 @@
-'use client'
 
 // components/CategoryForm.tsx
 import { usePortfolio } from '@/contexts/PortfolioContext'
@@ -6,23 +5,23 @@ import api from '@/lib/api'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Drawer,
-  IconButton,
-  MenuItem,
-  Select,
-  Snackbar,
-  Stack,
-  TextField,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Drawer,
+    IconButton,
+    MenuItem,
+    Select,
+    Snackbar,
+    Stack,
+    TextField,
+    Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 

@@ -1,15 +1,14 @@
-'use client'
 
 import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel,
+    Box,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TableSortLabel,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useState } from 'react'

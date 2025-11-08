@@ -1,7 +1,6 @@
-'use client'
 
-import { ASSET_CLASS } from '@/app/constants/assetClass'
-import { FIXED_INCOME_TYPES } from '@/app/constants/fixedIncomeTypes'
+import { ASSET_CLASS } from '@/constants/assetClass'
+import { FIXED_INCOME_TYPES } from '@/constants/fixedIncomeTypes'
 import api from '@/lib/api'
 import { Asset } from '@/types'
 import {

@@ -1,5 +1,5 @@
-'use client'
 
+import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { Delete } from '@mui/icons-material'
 import {
@@ -22,7 +22,6 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { usePortfolio } from '../contexts/PortfolioContext'
 
 interface BenchmarkOption {
   id: number

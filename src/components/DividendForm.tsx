@@ -1,25 +1,24 @@
-'use client'
 
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { Asset } from '@/types'
 import { Delete } from '@mui/icons-material'
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Drawer,
-  IconButton,
-  Snackbar,
-  Stack,
-  TextField,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Drawer,
+    IconButton,
+    Snackbar,
+    Stack,
+    TextField,
+    Typography,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs, { Dayjs } from 'dayjs'

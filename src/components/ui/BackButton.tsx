@@ -1,9 +1,8 @@
-'use client'
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { Button, ButtonProps } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 
 const BackButtonRoot = styled(Button)(({ theme }) => ({
   textTransform: 'none',
@@ -27,16 +26,16 @@ export default function BackButton({
   fallbackHref = '/',
   size = 'small',
 }: BackButtonProps) {
-  const router = useRouter()
+  const navigate = useNavigate()
 
   return (
     <BackButtonRoot
       startIcon={<ArrowBackIcon />}
       onClick={() => {
         if (window.history.length > 1) {
-          router.back()
+          navigate(-1)
         } else {
-          router.push(fallbackHref)
+          navigate(fallbackHref)
         }
       }}
       size={size}

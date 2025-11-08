@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import qs from 'qs'
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
 })
 
