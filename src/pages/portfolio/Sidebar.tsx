@@ -149,7 +149,6 @@ export default function Sidebar({
             width: DRAWER_WIDTH,
             pt: 1,
             pb: 1,
-            bgcolor: '#fff',
             height: '100vh',
             overflow: 'hidden',
           },

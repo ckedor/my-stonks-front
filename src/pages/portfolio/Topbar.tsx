@@ -11,19 +11,21 @@ import ExpandMore from '@mui/icons-material/ExpandMore'
 import MenuIcon from '@mui/icons-material/Menu'
 
 import {
-    AppBar,
-    Box,
-    CircularProgress,
-    Divider,
-    IconButton,
-    ListSubheader,
-    Menu,
-    MenuItem,
-    Select,
-    Toolbar,
-    Typography,
+  AppBar,
+  Box,
+  CircularProgress,
+  Divider,
+  IconButton,
+  ListSubheader,
+  Menu,
+  MenuItem,
+  Select,
+  Toolbar,
+  Typography
 } from '@mui/material'
 import { useEffect, useState } from 'react'
+
+import { ThemeToggleButton } from '@/components/ui/ThemeToggleButton'
 
 export default function Topbar({
   showMenuButton = false,
@@ -56,7 +58,7 @@ export default function Topbar({
     <>
       <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1}}>
             {showMenuButton && (
               <IconButton edge="start" aria-label="menu" onClick={onMenuClick}>
                 <MenuIcon />
@@ -66,6 +68,7 @@ export default function Topbar({
           </Box>
 
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <ThemeToggleButton />
             {loading ? (
               <CircularProgress size={24} />
             ) : (

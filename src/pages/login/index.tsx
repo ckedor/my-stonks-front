@@ -18,7 +18,7 @@ export default function LoginPage() {
     try {
       const { access_token } = await loginRequest(username, password)
       await login(access_token)
-      navigate('/portfolio')
+      navigate('/portfolio/overview')
     } catch (err) {
       console.log(err)
       setErrorOpen(true)

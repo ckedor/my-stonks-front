@@ -1,4 +1,3 @@
-import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import "./App.css";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -13,7 +12,7 @@ import TaxIncomePage from "./pages/portfolio/tax-income/page";
 import PortfolioTransactionsPage from "./pages/portfolio/trades/page";
 import UserConfigurationPage from "./pages/portfolio/user-configurations/page";
 import PortfolioPatrimonyEvolution from "./pages/portfolio/wealth/page";
-import { theme } from "./theme";
+import { ThemeRegistry } from "./theme";
 
 const router = createBrowserRouter([
   {
@@ -47,12 +46,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
+    <AuthProvider>
+      <ThemeRegistry>
         <RouterProvider router={router} />
-      </AuthProvider>
-    </ThemeProvider>
+      </ThemeRegistry>
+    </AuthProvider>
   );
 }
 

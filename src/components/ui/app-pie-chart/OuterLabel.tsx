@@ -1,4 +1,5 @@
 
+import { useTheme } from '@mui/material'
 import { PieLabelRenderProps } from 'recharts'
 
 type OuterLabelProps = PieLabelRenderProps & {
@@ -13,6 +14,8 @@ export default function OuterLabel({
   index,
   labels,
 }: OuterLabelProps) {
+  const theme = useTheme()
+
   if (
     typeof index !== 'number' ||
     typeof cx !== 'number' ||
@@ -32,7 +35,7 @@ export default function OuterLabel({
     <text
       x={x}
       y={y}
-      fill="#555"
+      fill={theme.palette.text.primary}
       textAnchor="middle"
       dominantBaseline="central"
       fontSize={14}

@@ -1,4 +1,5 @@
 
+import { useTheme } from '@mui/material'
 import { PieLabelRenderProps } from 'recharts'
 
 export default function PercentageLabel({
@@ -9,6 +10,9 @@ export default function PercentageLabel({
   outerRadius,
   percent,
 }: PieLabelRenderProps) {
+  const theme = useTheme()
+  const textMain = theme.palette.background.default
+  
   const RADIAN = Math.PI / 180
   const radius = Number(innerRadius) + (Number(outerRadius) - Number(innerRadius)) * 0.5
   const angle = Number(midAngle)
@@ -19,11 +23,10 @@ export default function PercentageLabel({
     <text
       x={x}
       y={y}
-      fill="#000"
       textAnchor="middle"
       dominantBaseline="central"
       fontSize={12}
-      style={{ pointerEvents: 'none' }}
+      style={{ pointerEvents: 'none', fill: textMain }}
     >
       {`${(Number(percent) * 100).toFixed(1)}%`}
     </text>

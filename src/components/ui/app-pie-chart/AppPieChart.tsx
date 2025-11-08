@@ -21,6 +21,8 @@ export default function AppPieChart({
   const theme = useTheme()
   const fallbackColors = theme.palette.chart.colors
   const activeColors = colors?.length ? colors : fallbackColors
+  const bgPage   = theme.palette.background.default
+  const textMain = theme.palette.text.primary
 
   const labels = data.map((item) => item.label)
 
@@ -32,6 +34,7 @@ export default function AppPieChart({
         '& .recharts-text:focus': { outline: 'none' },
         '& .recharts-pie-label-text:focus': { outline: 'none' },
         '& .recharts-tooltip-wrapper:focus': { outline: 'none' },
+        '& .recharts-text tspan': { fill: textMain },
       }}
     >
       <ResponsiveContainer width="100%" height="100%">
@@ -47,6 +50,8 @@ export default function AppPieChart({
             label={PercentageLabel}
             startAngle={90}
             endAngle={-270}
+            stroke={bgPage}
+            strokeWidth={5}
           >
             {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={activeColors[index % activeColors.length]} />
