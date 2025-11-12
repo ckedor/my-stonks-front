@@ -5,21 +5,22 @@ import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { Trade } from '@/types'
 import {
-    Box,
-    Button,
-    CircularProgress,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    SelectChangeEvent,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TextField,
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  useTheme,
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
@@ -27,6 +28,8 @@ import { useEffect, useMemo, useState } from 'react'
 export default function PortfolioTransactionsPage() {
   const { setTitle } = usePageTitle()
   const { selectedPortfolio } = usePortfolio()
+
+  const theme = useTheme()
 
   const [trades, setTrades] = useState<Trade[]>([])
   const [loading, setLoading] = useState(true)
@@ -201,13 +204,13 @@ export default function PortfolioTransactionsPage() {
                     cursor: 'pointer',
                     backgroundColor:
                       trade.type === 'Venda'
-                        ? 'rgba(255, 152, 0, 0.05)'
-                        : 'rgba(33, 150, 243, 0.05)',
+                        ? theme.palette.background.paper
+                        : theme.palette.background.default,
                     '&:hover': {
                       backgroundColor:
                         trade.type === 'Venda'
-                          ? 'rgba(255, 152, 0, 0.12)'
-                          : 'rgba(33, 150, 243, 0.12)',
+                          ? theme.palette.action.hover
+                          : theme.palette.action.hover,
                     },
                   }}
                 >

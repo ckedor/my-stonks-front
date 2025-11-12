@@ -20,11 +20,9 @@ export const useThemeMode = () => useContext(ThemeModeContext);
 
 export function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const getInitialMode = (): ThemeMode => {
-    // 1️⃣ tenta pegar do localStorage
     const saved = localStorage.getItem("theme-mode") as ThemeMode | null;
     if (saved === "light" || saved === "dark") return saved;
 
-    // 2️⃣ tenta pegar do sistema
     if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
       return "dark";
     }
@@ -32,7 +30,6 @@ export function ThemeRegistry({ children }: { children: React.ReactNode }) {
       return "light";
     }
 
-    // 3️⃣ fallback
     return "dark";
   };
 

@@ -8,6 +8,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  useTheme,
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
@@ -35,6 +36,10 @@ export default function PositionTable({
   onCategorySelect,
 }: PositionTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('portfolio')
+
+  const theme = useTheme()
+  const dangerColor = theme.palette.error.main
+  const successColor = theme.palette.success.main
 
   const returnsMap = useMemo(() => {
     const result: Record<string, number> = {}
@@ -94,8 +99,8 @@ export default function PositionTable({
 
   const getColor = (value: number | null) => {
     if (value == null) return undefined
-    if (value > 0) return '#2e7d32'
-    if (value < 0) return '#c62828'
+    if (value > 0) return successColor
+    if (value < 0) return dangerColor
     return undefined
   }
 

@@ -1,14 +1,15 @@
 import { useThemeMode } from '@/theme'; // seu hook do ThemeRegistry
 import { DarkMode, LightMode } from '@mui/icons-material';
-import { IconButton, Tooltip } from '@mui/material';
+import { IconButton, Tooltip, useTheme } from '@mui/material';
 
 export function ThemeToggleButton() {
   const { mode, toggleTheme } = useThemeMode()
+  const theme = useTheme()
 
   const icon =
     mode === 'dark'
-    ? <DarkMode  sx={{ color: '#eeb227ff' }} />   
-    : <LightMode sx={{ color: '#eeb227ff' }} />    
+    ? <DarkMode  sx={{ color: theme.palette.golden }} />   
+    : <LightMode sx={{ color: theme.palette.golden }} />    
   return (
     <Tooltip title={mode === 'dark' ? 'Modo claro' : 'Modo escuro'}>
       <IconButton

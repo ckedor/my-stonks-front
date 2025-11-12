@@ -48,5 +48,5 @@ export default function PositionPieChart({ positions, selectedCategory }: Positi
     }
   }, [positions, selectedCategory, userCategories])
 
-  return <AppPieChart data={data} colors={colors} isCurrency height={400} />
+  return <AppPieChart data={data} colors={colors} isCurrency height={360} />
 }

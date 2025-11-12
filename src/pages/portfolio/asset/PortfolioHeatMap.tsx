@@ -1,6 +1,6 @@
 
 import { PortfolioPositionEntry } from '@/types'
-import { Box } from '@mui/material'
+import { Box, useTheme } from '@mui/material'
 import { localPoint } from '@visx/event'
 import { Treemap, hierarchy } from '@visx/hierarchy'
 import { scaleLinear } from '@visx/scale'
@@ -16,6 +16,8 @@ interface PortfolioHeatMapProps {
 export default function PortfolioHeatMap({ positions }: PortfolioHeatMapProps) {
   const navigate = useNavigate()
   const total = positions.reduce((sum, p) => sum + p.value, 0)
+
+  const theme = useTheme()
 
   // Agrupar e ordenar categorias por valor total (desc)
   const grouped = Object.entries(
@@ -85,7 +87,7 @@ export default function PortfolioHeatMap({ positions }: PortfolioHeatMapProps) {
           position: 'relative',
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgb(255, 255, 255)',
+          backgroundColor: theme.palette.background.default,
         }}
       >
         {dimensions.width > 0 && dimensions.height > 0 && (
@@ -111,7 +113,7 @@ export default function PortfolioHeatMap({ positions }: PortfolioHeatMapProps) {
                         left: x0,
                         width: x1 - x0,
                         height: y1 - y0,
-                        border: '1px solid rgb(255, 255, 255)',
+                        border: `1px solid ${theme.palette.background.default}`,
                         boxSizing: 'border-box',
                         pointerEvents: 'none',
                       }}
@@ -123,7 +125,7 @@ export default function PortfolioHeatMap({ positions }: PortfolioHeatMapProps) {
                           left: 6,
                           fontSize: 11,
                           fontWeight: 'bold',
-                          color: 'rgb(10, 1, 1)',
+                          color: theme.palette.text.primary,
                           padding: '1px 6px',
                           borderRadius: 4,
                           pointerEvents: 'none',
@@ -152,7 +154,7 @@ export default function PortfolioHeatMap({ positions }: PortfolioHeatMapProps) {
                         width,
                         height,
                         backgroundColor: colorScale(pos.return ?? 0),
-                        color: '#fff',
+                        color: '#dededeff',
                         fontSize: 10,
                         overflow: 'hidden',
                         display: 'flex',

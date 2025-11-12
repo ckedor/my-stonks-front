@@ -1,17 +1,17 @@
 
 import { Dividend } from '@/types'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Legend,
-    ReferenceLine,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
 
 interface Props {
@@ -21,7 +21,9 @@ interface Props {
 }
 
 export default function PortfolioDividendsChartByYear({ dividends, selected, size = 370 }: Props) {
-  // filtra pelo selected
+  
+  const theme = useTheme()
+
   const filtered =
     selected === 'portfolio' ? dividends : dividends.filter((d) => d.category === selected)
 
@@ -85,14 +87,20 @@ export default function PortfolioDividendsChartByYear({ dividends, selected, siz
     <Box position="relative" height={size}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ left: 48 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
-          <XAxis dataKey="month" />
+          <CartesianGrid 
+          strokeDasharray="3 3" 
+          stroke={theme.palette.chart.grid} />
+          <XAxis 
+            dataKey="month"
+            stroke={theme.palette.text.primary}
+          />
           <YAxis
             orientation="right"
             domain={[0, upper]}
             ticks={yTicks}
             tickFormatter={(v) => `R$ ${v.toLocaleString('pt-BR')}`}
             tick={{ fontSize: 13 }}
+            stroke={theme.palette.text.primary}
           />
           <Tooltip
             formatter={(value: number) =>
@@ -103,11 +111,15 @@ export default function PortfolioDividendsChartByYear({ dividends, selected, siz
           <Bar
             dataKey={previousYear}
             name={`${previousYear}`}
-            fill="#8884d8"
+            fill={theme.palette.primary.main}
             radius={[4, 4, 0, 0]}
           />
-          <Bar dataKey={currentYear} name={`${currentYear}`} fill="#82ca9d" radius={[4, 4, 0, 0]} />
-          <ReferenceLine y={avg} stroke="#333" strokeDasharray="5 5" strokeWidth={1.5} />
+          <Bar dataKey={currentYear} name={`${currentYear}`} fill={theme.palette.secondary.main} radius={[4, 4, 0, 0]} />
+          <ReferenceLine 
+            y={avg} 
+            stroke={theme.palette.text.primary} 
+            strokeDasharray="5 5" 
+            strokeWidth={1.5} />
         </BarChart>
       </ResponsiveContainer>
     </Box>

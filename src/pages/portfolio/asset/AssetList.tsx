@@ -23,6 +23,7 @@ import {
   TableRow,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers'
 import { Dayjs } from 'dayjs'
@@ -53,6 +54,10 @@ export default function AssetList({ positions }: { positions: Position[] }) {
   }>({ open: false, categoryId: null, assetId: null })
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const navigate = useNavigate()
+
+  const theme = useTheme()
+  const negativeColor = theme.palette.error.main
+  const positiveColor = theme.palette.success.main
 
   const filtered = positions.filter((pos) =>
     pos.ticker.toLowerCase().includes(search.toLowerCase())
@@ -199,7 +204,7 @@ export default function AssetList({ positions }: { positions: Position[] }) {
                       hover
                       sx={{
                         cursor: 'pointer',
-                        '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
+                        '&:hover': { backgroundColor: 'rgba(176, 49, 49, 0.04)' },
                       }}
                     >
                       <TableCell onClick={() => handleAssetSelect(pos.asset_id)}>
@@ -222,10 +227,10 @@ export default function AssetList({ positions }: { positions: Position[] }) {
                         sx={{
                           color:
                             pos.twelve_months_return == null
-                              ? 'black'
+                              ? theme.palette.text.primary
                               : pos.twelve_months_return > 0
-                                ? 'green'
-                                : 'red',
+                                ? positiveColor
+                                : negativeColor,
                         }}
                       >
                         {pos.twelve_months_return == null

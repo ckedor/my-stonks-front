@@ -1,19 +1,19 @@
 
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import { usePortfolioReturns } from '@/contexts/PortfolioReturnsContext'
-import { Box, Checkbox, CircularProgress, MenuItem, Select, Stack, Typography } from '@mui/material'
+import { Box, Checkbox, CircularProgress, MenuItem, Select, Stack, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import { useEffect, useMemo, useState } from 'react'
 import {
-    CartesianGrid,
-    ComposedChart,
-    Legend,
-    Line,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
 
 dayjs.extend(isSameOrAfter)
@@ -25,15 +25,7 @@ interface Props {
   selectedAssets?: string[]
 }
 
-const COLORS: Record<string, string> = {
-  Carteira: '#1976d2',
-  CDI: '#f39c12',
-  IFIX: '#00bc8c',
-  'S&P500': '#e74c3c',
-  IBOVESPA: '#A9A92A',
-  IPCA: '#8e44ad',
-  'USD/BRL': '#2980b9',
-}
+
 
 const mapDisplayName = (key: string) => (key === 'portfolio' ? 'Carteira' : key)
 const mapOriginalKey = (label: string) => (label === 'Carteira' ? 'portfolio' : label)
@@ -46,6 +38,20 @@ export default function PortfolioReturnsChart({
 }: Props) {
   const { categoryReturns, assetReturns, benchmarks, loading } = usePortfolioReturns()
   const { userCategories } = usePortfolio()
+  
+  const theme = useTheme()
+  const gridColor = theme.palette.chart.grid
+  const labelColor = theme.palette.chart.label
+
+  const COLORS: Record<string, string> = {
+    Carteira: theme.palette.primary.main,
+    CDI: theme.palette.secondary.main,
+    IFIX: '#00bc8c',
+    'S&P500': '#e74c3c',
+    IBOVESPA: '#A9A92A',
+    IPCA: '#8e44ad',
+    'USD/BRL': '#2980b9',
+  }
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     mapOriginalKey(selectedCategory),
@@ -178,7 +184,6 @@ export default function PortfolioReturnsChart({
     <Box sx={{ p: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} mr={5}>
         <Box>
-          {/* Categorias */}
           <Select
             multiple
             value={selectedCategories}
@@ -199,7 +204,6 @@ export default function PortfolioReturnsChart({
             ))}
           </Select>
 
-          {/* Benchmarks */}
           <Select
             multiple
             value={selectedBenchmarks}
@@ -220,7 +224,6 @@ export default function PortfolioReturnsChart({
             ))}
           </Select>
 
-          {/* Ativos */}
           <Select
             multiple
             value={selectedAssetKeys}
@@ -263,19 +266,24 @@ export default function PortfolioReturnsChart({
       ) : (
         <ResponsiveContainer width="100%" height={size}>
           <ComposedChart data={data} margin={{ left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
-            <XAxis dataKey="date" tickFormatter={(v) => dayjs(v).format('MM/YY')} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+            <XAxis 
+              dataKey="date" 
+              tickFormatter={(v) => dayjs(v).format('MM/YY')} 
+              stroke={labelColor} 
+            />
             <YAxis
               orientation="right"
               domain={[min - padding, max + padding]}
               tickFormatter={(v) => `${v.toFixed(0)}%`}
               ticks={yTicks}
+              stroke={labelColor}
             />
             <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
             <Legend />
             {allKeys.map((key) => {
               const display = mapDisplayName(key)
-              const stroke = categoryColorMap[display] || COLORS[display] || '#888'
+              const stroke = categoryColorMap[display] || COLORS[display] || theme.palette.secondary.main
               return (
                 <Line
                   key={key}

@@ -11,7 +11,6 @@ export default function PercentageLabel({
   percent,
 }: PieLabelRenderProps) {
   const theme = useTheme()
-  const textMain = theme.palette.background.default
   
   const RADIAN = Math.PI / 180
   const radius = Number(innerRadius) + (Number(outerRadius) - Number(innerRadius)) * 0.5
@@ -26,7 +25,7 @@ export default function PercentageLabel({
       textAnchor="middle"
       dominantBaseline="central"
       fontSize={12}
-      style={{ pointerEvents: 'none', fill: textMain }}
+      style={{ pointerEvents: 'none', fill: theme.palette.dark }}
     >
       {`${(Number(percent) * 100).toFixed(1)}%`}
     </text>

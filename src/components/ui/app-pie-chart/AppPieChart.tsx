@@ -51,7 +51,7 @@ export default function AppPieChart({
             startAngle={90}
             endAngle={-270}
             stroke={bgPage}
-            strokeWidth={5}
+            strokeWidth={0}
           >
             {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={activeColors[index % activeColors.length]} />
