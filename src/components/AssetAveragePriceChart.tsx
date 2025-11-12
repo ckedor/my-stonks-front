@@ -1,6 +1,6 @@
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Box, CircularProgress, Typography, useTheme } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -39,12 +39,6 @@ interface Props {
   assetId: number
 }
 
-const COLORS = {
-  quantity: '#aaa',
-  price: '#1976d2',
-  average_price: '#b03a48',
-}
-
 const LABELS = {
   quantity: 'Quantidade',
   price: 'Cotação',
@@ -58,6 +52,13 @@ export default function AssetAveragePriceChart({ size, assetId }: Props) {
   const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState<Dayjs | null>(null)
   const [endDate, setEndDate] = useState<Dayjs | null>(null)
+
+  const theme = useTheme();
+  const COLORS = {
+    quantity: theme.palette.chart.colors[0],
+    price: theme.palette.primary.main,
+    average_price: theme.palette.error.main,
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,6 +113,7 @@ export default function AssetAveragePriceChart({ size, assetId }: Props) {
   const renderTransactionShape = (props: any): JSX.Element => {
     const { cx, cy, payload } = props
     const qty = Math.abs(payload.transaction_quantity || 0)
+
 
     if (!payload.transaction_value || qty === 0) return <></>
 
@@ -172,10 +174,22 @@ export default function AssetAveragePriceChart({ size, assetId }: Props) {
 
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={filteredData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={(d) => dayjs(d).format('MM/YY')} />
-              <YAxis yAxisId="left" orientation="left" domain={['auto', 'auto']} />
-              <YAxis yAxisId="right" orientation="right" />
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.chart.grid} />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(d) => dayjs(d).format('MM/YY')} 
+                stroke={theme.palette.text.primary} />
+              <YAxis 
+                yAxisId="left" 
+                orientation="left" 
+                domain={['auto', 'auto']} 
+                stroke={theme.palette.text.primary} 
+              />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right" 
+                stroke={theme.palette.text.primary}
+              />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload || !payload.length) return null

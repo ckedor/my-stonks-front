@@ -80,7 +80,7 @@ export default function PortfolioAssetPage() {
           <PortfolioReturnsChart
             size={250}
             selectedAssets={[asset.ticker]}
-            selectedCategory={'CDI'}
+            selectedBenchmark={'CDI'}
           />
         </Grid>
         <Grid size={{ xs: 6 }}>

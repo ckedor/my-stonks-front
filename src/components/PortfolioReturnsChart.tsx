@@ -32,7 +32,7 @@ const mapOriginalKey = (label: string) => (label === 'Carteira' ? 'portfolio' : 
 
 export default function PortfolioReturnsChart({
   size,
-  selectedCategory = 'Carteira',
+  selectedCategory,
   selectedBenchmark,
   selectedAssets = [],
 }: Props) {
@@ -53,15 +53,15 @@ export default function PortfolioReturnsChart({
     'USD/BRL': '#2980b9',
   }
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([
-    mapOriginalKey(selectedCategory),
-  ])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    selectedCategory ? [mapOriginalKey(selectedCategory)] : []
+  )
   const [selectedBenchmarks, setSelectedBenchmarks] = useState<string[]>(
     selectedBenchmark ? [selectedBenchmark] : []
   )
 
   useEffect(() => {
-    setSelectedCategories([mapOriginalKey(selectedCategory)])
+    setSelectedCategories(selectedCategory ? [mapOriginalKey(selectedCategory)] : [])
   }, [selectedCategory])
 
   useEffect(() => {
@@ -275,15 +275,17 @@ export default function PortfolioReturnsChart({
             <YAxis
               orientation="right"
               domain={[min - padding, max + padding]}
-              tickFormatter={(v) => `${v.toFixed(0)}%`}
+              tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
               ticks={yTicks}
               stroke={labelColor}
             />
-            <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
+            <Tooltip
+              formatter={(value, name) => [`${Number(value).toFixed(2)}%`, mapDisplayName(String(name))]}
+            />
             <Legend />
             {allKeys.map((key) => {
               const display = mapDisplayName(key)
-              const stroke = categoryColorMap[display] || COLORS[display] || theme.palette.secondary.main
+              const stroke = categoryColorMap[display] || COLORS[display] || theme.palette.primary.main
               return (
                 <Line
                   key={key}
