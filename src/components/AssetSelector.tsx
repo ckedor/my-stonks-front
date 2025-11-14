@@ -3,15 +3,15 @@ import api from '@/lib/api'
 import { Asset } from '@/types'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import {
-    CircularProgress,
-    FormControl,
-    Grid,
-    InputLabel,
-    ListItemIcon,
-    ListItemText,
-    MenuItem,
-    Select,
-    TextField,
+  CircularProgress,
+  FormControl,
+  Grid,
+  InputLabel,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Select,
+  TextField,
 } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -55,6 +55,7 @@ export default function AssetSelector({ value, onChange }: AssetSelectorProps) {
       try {
         await Promise.all([fetchTypes(), fetchAssets()])
       } catch {
+        console.log('Failed to load asset types or assets')
       } finally {
         setLoading(false)
       }

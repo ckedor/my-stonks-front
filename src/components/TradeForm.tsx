@@ -1,33 +1,39 @@
-
+import { ASSET_TYPES } from '@/constants/assetTypes'
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { Asset, Trade } from '@/types'
 import { Delete } from '@mui/icons-material'
 import {
-    Alert,
-    Box,
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Drawer,
-    FormControl,
-    IconButton,
-    InputLabel,
-    MenuItem,
-    Select,
-    Snackbar,
-    Stack,
-    TextField,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Drawer,
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs, { Dayjs } from 'dayjs'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AssetSelector from './AssetSelector'
+
+type AssetTypeKey = keyof typeof ASSET_TYPES
+const ASSET_TYPE_BY_ID: Record<number, AssetTypeKey> = Object.fromEntries(
+  Object.entries(ASSET_TYPES).map(([k, v]) => [v as number, k as AssetTypeKey])
+) as Record<number, AssetTypeKey>
 
 interface Currency {
   id: number
@@ -40,6 +46,17 @@ interface Broker {
   name: string
   legalId: string
   currency: Currency
+}
+
+interface Quote {
+  close: number
+  date: string
+}
+
+interface QuoteResponse {
+  quotes: Quote[]
+  ticker: string
+  currency: string
 }
 
 interface TradeFormProps {
@@ -61,6 +78,7 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
   const [brokerId, setBrokerId] = useState<number | ''>('')
   const [portfolioId, setPortfolioId] = useState<number | ''>('')
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
+  const [priceLoading, setPriceLoading] = useState(false)
 
   const [brokers, setBrokers] = useState<Broker[]>([])
   const [loading, setLoading] = useState(false)
@@ -70,7 +88,6 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
   const [touched, setTouched] = useState(false)
 
   const selectedBroker = brokers.find((b) => b.id === brokerId)
-
   const isDolar = selectedBroker?.currency.name === 'Dólar'
 
   const isValid =
@@ -106,6 +123,36 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
     }
   }, [open])
 
+  const assetTypeKey = useMemo<AssetTypeKey | null>(() => {
+    const id = selectedAsset?.asset_type_id
+    if (id == null) return null
+    return ASSET_TYPE_BY_ID[id] ?? null
+  }, [selectedAsset])
+
+  async function fetchAndSetPrice() {
+    if (!selectedAsset || !assetTypeKey || !date || isEdit) return
+    setPriceLoading(true)
+    try {
+      const d = dayjs(date).format('YYYY-MM-DD')
+      const { data } = await api.get<QuoteResponse>('market_data/quotes', {
+        params: { ticker: selectedAsset.ticker, asset_type: assetTypeKey, date: d },
+      })
+      const q =
+        data.quotes.find((q) => dayjs(q.date).format('YYYY-MM-DD') === d) ??
+        data.quotes[0] ??
+        null
+      setPrice(q ? Number(q.close) : 0)
+    } catch {
+      setPrice(0)
+    } finally {
+      setPriceLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchAndSetPrice()
+  }, [selectedAsset, date, assetTypeKey])
+
   const handleSubmit = async () => {
     setTouched(true)
     if (!isValid) return
@@ -127,11 +174,9 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
       } else {
         await api.post('/portfolio/transaction/', payload)
       }
-
       onClose()
-      if (onSave) onSave()
-    } catch (err) {
-      console.error('Erro ao enviar operação:', err)
+      onSave?.()
+    } catch {
       setError('Erro ao salvar a operação. Tente novamente.')
       setSnackbarOpen(true)
     } finally {
@@ -150,9 +195,8 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
       })
       setConfirmOpen(false)
       onClose()
-      if (onSave) onSave()
-    } catch (err) {
-      console.error('Erro ao deletar operação:', err)
+      onSave?.()
+    } catch {
       setError('Erro ao deletar a operação.')
       setSnackbarOpen(true)
     }
@@ -161,14 +205,7 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
   return (
     <>
       <Drawer anchor="right" open={open} onClose={onClose}>
-        <Box
-          p={3}
-          width={500}
-          display="flex"
-          flexDirection="column"
-          height="100%"
-          position="relative"
-        >
+        <Box p={3} width={500} display="flex" flexDirection="column" height="100%">
           <Stack spacing={3} p={1} flex={1} overflow="auto">
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
               <Typography variant="h6">
@@ -191,7 +228,7 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
             ) : (
               <AssetSelector
                 value={selectedAsset?.id ?? null}
-                onChange={(asset) => setSelectedAsset(asset)}
+                onChange={setSelectedAsset}
               />
             )}
 
@@ -235,6 +272,13 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
               type="number"
               value={price}
               onChange={(e) => setPrice(parseFloat(e.target.value))}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {priceLoading && <CircularProgress size={18} />}
+                  </InputAdornment>
+                ),
+              }}
               error={touched && price <= 0}
               helperText={touched && price <= 0 ? 'Preço deve ser maior que zero' : ''}
               fullWidth
