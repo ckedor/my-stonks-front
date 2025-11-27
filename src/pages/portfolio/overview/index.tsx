@@ -1,4 +1,3 @@
-
 import { Alert, Box, Button, CircularProgress, Grid, Stack, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import PortfolioDividendsChart from '../../../components/PortfolioDividendsChart'
@@ -14,7 +13,7 @@ import PositionPieChart from './PositionPieChart'
 import PositionTable from './PositionTable'
 
 export default function PortfolioOverviewPage() {
-  const { selectedPortfolio, userCategories } = usePortfolio()
+  const { selectedPortfolio, userCategories, portfolioRefreshKey } = usePortfolio()
   const { categoryReturns } = usePortfolioReturns()
 
   const [positions, setPositions] = useState<PortfolioPositionEntry[] | null>(null)
@@ -73,8 +72,11 @@ export default function PortfolioOverviewPage() {
       }
     }
 
+    // refaz fetch quando:
+    // - muda a carteira
+    // - OU alguém dispara triggerPortfolioRefresh()
     fetchData()
-  }, [selectedPortfolio?.id])
+  }, [selectedPortfolio?.id, portfolioRefreshKey])
 
   useEffect(() => {
     if (selectedCategory === 'portfolio') {
@@ -137,13 +139,15 @@ export default function PortfolioOverviewPage() {
   return (
     <Box>
       <Grid container direction="row">
-        <Grid size={{ xs: 12, md: 12, lg: 6}}>
-          <PositionPieChart 
-            positions={positions} 
-            selectedCategory={selectedCategory} 
-          />
+        <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+          <PositionPieChart positions={positions} selectedCategory={selectedCategory} />
         </Grid>
-        <Grid size={{ xs: 12, md: 12, lg: 6 }} display="flex" justifyContent="center" alignItems="center">
+        <Grid
+          size={{ xs: 12, md: 12, lg: 6 }}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+        >
           <PositionTable
             positions={positions}
             onCategorySelect={setSelectedCategory}

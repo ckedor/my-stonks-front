@@ -25,6 +25,7 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 
+import RecalculatePortfolioButton from '@/components/RecalculatePortfolioButton'
 import { ThemeToggleButton } from '@/components/ui/ThemeToggleButton'
 
 export default function Topbar({
@@ -72,6 +73,8 @@ export default function Topbar({
             {loading ? (
               <CircularProgress size={24} />
             ) : (
+              <>
+              
               <Select
                 value={selected ?? ''}
                 onChange={(e) => {
@@ -104,6 +107,8 @@ export default function Topbar({
                   </Box>
                 </MenuItem>
               </Select>
+              <RecalculatePortfolioButton />
+              </>
             )}
 
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>

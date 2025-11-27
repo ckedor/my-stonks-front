@@ -1,4 +1,3 @@
-
 import api from '@/lib/api'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Portfolio, UserCategory } from '../types'
@@ -10,6 +9,8 @@ interface PortfolioContextType {
   loading: boolean
   userCategories: UserCategory[]
   refreshPortfolio: (selectedId?: number) => Promise<void>
+  portfolioRefreshKey: number
+  triggerPortfolioRefresh: () => void
 }
 
 const PortfolioContext = createContext({} as PortfolioContextType)
@@ -18,6 +19,9 @@ export const PortfolioProvider = ({ children }: { children: React.ReactNode }) =
   const [portfolios, setPortfolios] = useState<Portfolio[]>([])
   const [selectedPortfolio, _setSelectedPortfolio] = useState<Portfolio | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // chave que será incrementada quando houver recálculo
+  const [portfolioRefreshKey, setPortfolioRefreshKey] = useState(0)
 
   const setSelectedPortfolio = (p: Portfolio) => {
     console.log('[DEBUG] setSelectedPortfolio chamado com:', p)
@@ -68,6 +72,10 @@ export const PortfolioProvider = ({ children }: { children: React.ReactNode }) =
     }
   }
 
+  const triggerPortfolioRefresh = () => {
+    setPortfolioRefreshKey((prev) => prev + 1)
+  }
+
   return (
     <PortfolioContext.Provider
       value={{
@@ -77,6 +85,8 @@ export const PortfolioProvider = ({ children }: { children: React.ReactNode }) =
         loading,
         userCategories,
         refreshPortfolio,
+        portfolioRefreshKey,
+        triggerPortfolioRefresh,
       }}
     >
       {children}
