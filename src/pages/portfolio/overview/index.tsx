@@ -160,6 +160,7 @@ export default function PortfolioOverviewPage() {
         <Grid size={{ xs: 12, md: 12, lg: 12, xl: 6 }}>
           <PortfolioReturnsChart
             size={380}
+            defaultRange='1y'
             selectedCategory={selectedCategory}
             selectedBenchmark={selectedBenchmark}
           />

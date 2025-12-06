@@ -1,4 +1,4 @@
-
+// src/components/PortfolioReturnsChart.tsx
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import { usePortfolioReturns } from '@/contexts/PortfolioReturnsContext'
 import { Box, Checkbox, CircularProgress, MenuItem, Select, Stack, Typography, useTheme } from '@mui/material'
@@ -23,9 +23,10 @@ interface Props {
   selectedCategory?: string
   selectedBenchmark?: string
   selectedAssets?: string[]
+  defaultRange?: string
+  onRangeChange?: (range: string) => void
+  onCurveChange?: (curve: { kind: 'category' | 'benchmark' | 'asset'; key: string }) => void
 }
-
-
 
 const mapDisplayName = (key: string) => (key === 'portfolio' ? 'Carteira' : key)
 const mapOriginalKey = (label: string) => (label === 'Carteira' ? 'portfolio' : label)
@@ -35,10 +36,13 @@ export default function PortfolioReturnsChart({
   selectedCategory,
   selectedBenchmark,
   selectedAssets = [],
+  defaultRange,
+  onRangeChange,
+  onCurveChange,
 }: Props) {
   const { categoryReturns, assetReturns, benchmarks, loading } = usePortfolioReturns()
   const { userCategories } = usePortfolio()
-  
+
   const theme = useTheme()
   const gridColor = theme.palette.chart.grid
   const labelColor = theme.palette.chart.label
@@ -59,6 +63,8 @@ export default function PortfolioReturnsChart({
   const [selectedBenchmarks, setSelectedBenchmarks] = useState<string[]>(
     selectedBenchmark ? [selectedBenchmark] : []
   )
+  const [selectedAssetKeys, setSelectedAssetKeys] = useState<string[]>(selectedAssets)
+  const [range, setRange] = useState(defaultRange)
 
   useEffect(() => {
     setSelectedCategories(selectedCategory ? [mapOriginalKey(selectedCategory)] : [])
@@ -67,9 +73,6 @@ export default function PortfolioReturnsChart({
   useEffect(() => {
     setSelectedBenchmarks(selectedBenchmark ? [selectedBenchmark] : [])
   }, [selectedBenchmark])
-
-  const [selectedAssetKeys, setSelectedAssetKeys] = useState<string[]>(selectedAssets)
-  const [range, setRange] = useState('1y')
 
   const categoryColorMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -159,15 +162,17 @@ export default function PortfolioReturnsChart({
 
   const allKeys = [...selectedCategories, ...selectedBenchmarks, ...selectedAssetKeys]
   const values = data.flatMap((d) => allKeys.map((k) => (typeof d[k] === 'number' ? d[k] : 0)))
-  const min = Math.min(...values)
-  const max = Math.max(...values)
+  const min = values.length ? Math.min(...values) : 0
+  const max = values.length ? Math.max(...values) : 0
   const padding = (max - min) * 0.1
   const upper = Math.ceil((max + padding) / 10) * 10
   const yTicks: number[] = []
   for (let i = 0; i <= upper; i += 10) yTicks.push(i)
 
   const currentYear = dayjs().year()
-  const totalMonths = dayjs(allDates.at(-1)).diff(dayjs(allDates[0]), 'month')
+  const totalMonths = allDates.length
+    ? dayjs(allDates.at(-1) as string).diff(dayjs(allDates[0] as string), 'month')
+    : 0
   const totalYears = Math.floor(totalMonths / 12)
   const ranges = useMemo(() => {
     const base = [
@@ -180,16 +185,35 @@ export default function PortfolioReturnsChart({
     return base
   }, [totalYears, currentYear])
 
+  const xTicks = useMemo(() => {
+    const ticks: string[] = []
+
+    filteredDates.forEach((date) => {
+      const d = dayjs(date)
+      if (d.date() === 1) {
+        ticks.push(date)
+      }
+    })
+
+    return ticks.length ? ticks : filteredDates
+  }, [filteredDates])
+
   return (
     <Box sx={{ p: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} mr={5}>
         <Box>
+          {/* Categorias */}
           <Select
             multiple
             value={selectedCategories}
             onChange={(e) => {
               const value = e.target.value
-              setSelectedCategories(typeof value === 'string' ? value.split(',') : value)
+              const arr = typeof value === 'string' ? value.split(',') : (value as string[])
+              setSelectedCategories(arr)
+              if (arr.length && onCurveChange) {
+                const lastKey = arr[arr.length - 1]
+                onCurveChange({ kind: 'category', key: lastKey })
+              }
             }}
             variant="standard"
             size="small"
@@ -204,12 +228,18 @@ export default function PortfolioReturnsChart({
             ))}
           </Select>
 
+          {/* Benchmarks */}
           <Select
             multiple
             value={selectedBenchmarks}
             onChange={(e) => {
               const value = e.target.value
-              setSelectedBenchmarks(typeof value === 'string' ? value.split(',') : value)
+              const arr = typeof value === 'string' ? value.split(',') : (value as string[])
+              setSelectedBenchmarks(arr)
+              if (arr.length && onCurveChange) {
+                const lastKey = arr[arr.length - 1]
+                onCurveChange({ kind: 'benchmark', key: lastKey })
+              }
             }}
             variant="standard"
             size="small"
@@ -224,12 +254,18 @@ export default function PortfolioReturnsChart({
             ))}
           </Select>
 
+          {/* Ativos */}
           <Select
             multiple
             value={selectedAssetKeys}
             onChange={(e) => {
               const value = e.target.value
-              setSelectedAssetKeys(typeof value === 'string' ? value.split(',') : value)
+              const arr = typeof value === 'string' ? value.split(',') : (value as string[])
+              setSelectedAssetKeys(arr)
+              if (arr.length && onCurveChange) {
+                const lastKey = arr[arr.length - 1]
+                onCurveChange({ kind: 'asset', key: lastKey })
+              }
             }}
             variant="standard"
             size="small"
@@ -250,8 +286,11 @@ export default function PortfolioReturnsChart({
           {ranges.map((r) => (
             <Typography
               key={r.value}
-              onClick={() => setRange(r.value)}
-              sx={{ cursor: 'pointer', fontWeight: range === r.value ? 700 : 400, fontSize: 13}}
+              onClick={() => {
+                setRange(r.value)
+                onRangeChange?.(r.value)
+              }}
+              sx={{ cursor: 'pointer', fontWeight: range === r.value ? 700 : 400, fontSize: 13 }}
             >
               {r.label}
             </Typography>
@@ -267,10 +306,16 @@ export default function PortfolioReturnsChart({
         <ResponsiveContainer width="100%" height={size}>
           <ComposedChart data={data} margin={{ left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-            <XAxis 
-              dataKey="date" 
-              tickFormatter={(v) => dayjs(v).format('MM/YY')} 
-              stroke={labelColor} 
+            <XAxis
+              dataKey="date"
+              ticks={xTicks}
+              interval={0}
+              minTickGap={0}
+              tickFormatter={(v) => {
+                const d = dayjs(v)
+                return d.month() === 0 ? d.format("MM/YY") : d.format("MM")
+              }}
+              stroke={labelColor}
             />
             <YAxis
               orientation="right"
