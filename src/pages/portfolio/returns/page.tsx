@@ -1,31 +1,40 @@
 // src/pages/PortfolioReturnsPage.tsx
 import PortfolioReturnsChart from '@/components/PortfolioReturnsChart'
 import { usePageTitle } from '@/contexts/PageTitleContext'
-import { Box, Grid } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { usePortfolioReturns } from '@/contexts/PortfolioReturnsContext'
+import { Box, CircularProgress, Grid } from '@mui/material'
+import { useEffect, useMemo, useState } from 'react'
 import PortfolioMonthlyHeatmap from './PortfolioMonthlyHeatmap'
 import PortfolioMonthlyReturnsChart from './PortfolioMonthlyReturnsChart'
 import PortfolioRolling12mChart from './PortfolioRolling12mChart'
 
-type CurveKind = 'category' | 'benchmark' | 'asset'
-
-interface SelectedCurve {
-  kind: CurveKind
-  key: string
+interface SeriesPoint {
+  date: string
+  value: number
 }
 
 export default function PortfolioReturnsPage() {
   const { setTitle } = usePageTitle()
+  const { categoryReturns, loading } = usePortfolioReturns()
 
   const [range, setRange] = useState<string>('max')
-  const [selectedCurve, setSelectedCurve] = useState<SelectedCurve>({
-    kind: 'category',
-    key: 'portfolio',
-  })
 
   useEffect(() => {
     setTitle('Rentabilidade Carteira')
   }, [setTitle])
+
+  // Busca os dados do portfolio
+  const portfolioData: SeriesPoint[] = useMemo(() => {
+    return (categoryReturns['portfolio'] || []).slice()
+  }, [categoryReturns])
+
+  if (loading) {
+    return (
+      <Box height="80vh" display="flex" alignItems="center" justifyContent="center">
+        <CircularProgress />
+      </Box>
+    )
+  }
 
   return (
     <Box sx={{ p: 1 }}>
@@ -38,13 +47,14 @@ export default function PortfolioReturnsPage() {
               selectedBenchmark="CDI"
               defaultRange={range}
               onRangeChange={setRange}
-              onCurveChange={setSelectedCurve}
             />
         </Grid>
 
         {/* Linha 2 - Heatmap full width */}
         <Grid size={12}>
-            <PortfolioMonthlyHeatmap curve={selectedCurve} />
+            <PortfolioMonthlyHeatmap 
+              data={portfolioData} 
+            />
         </Grid>
 
         {/* Linha 3 - 2 gráficos lado a lado */}
@@ -52,14 +62,14 @@ export default function PortfolioReturnsPage() {
             <PortfolioMonthlyReturnsChart
               height={300}
               defaultRange={range}
-              curve={selectedCurve}
+              data={portfolioData}
             />
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
             <PortfolioRolling12mChart
               height={300}
-              curve={selectedCurve}
+              data={portfolioData}
             />
         </Grid>
       </Grid>

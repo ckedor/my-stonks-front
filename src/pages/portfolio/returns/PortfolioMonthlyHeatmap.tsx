@@ -1,23 +1,15 @@
 // src/components/PortfolioMonthlyHeatmap.tsx
-import { usePortfolioReturns } from '@/contexts/PortfolioReturnsContext'
-import { Box, CircularProgress, Typography, useTheme } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
-
-type CurveKind = 'category' | 'benchmark' | 'asset'
-
-interface SelectedCurve {
-  kind: CurveKind
-  key: string
-}
-
-interface Props {
-  curve?: SelectedCurve | null
-}
 
 interface SeriesPoint {
   date: string
   value: number
+}
+
+interface Props {
+  data: SeriesPoint[]
 }
 
 interface HeatmapCell {
@@ -41,26 +33,13 @@ const MONTH_LABELS = [
   'dez',
 ]
 
-export default function PortfolioMonthlyHeatmap({ curve }: Props) {
-  const { categoryReturns, assetReturns, benchmarks, loading } = usePortfolioReturns()
+export default function PortfolioMonthlyHeatmap({ data }: Props) {
   const theme = useTheme()
 
   // série completa da curva (sem filtro de timeframe)
   const baseSeries: SeriesPoint[] = useMemo(() => {
-    if (curve) {
-      if (curve.kind === 'category') {
-        return (categoryReturns[curve.key] || []).slice()
-      }
-      if (curve.kind === 'asset') {
-        return (assetReturns[curve.key] || []).slice()
-      }
-      if (curve.kind === 'benchmark') {
-        return (benchmarks[curve.key] || []).slice()
-      }
-    }
-    // fallback: carteira
-    return (categoryReturns['portfolio'] || []).slice()
-  }, [curve, categoryReturns, assetReturns, benchmarks])
+    return data || []
+  }, [data])
 
   // calcula retorno mensal (em %) por (ano, mês) usando a série inteira
   const { byYear, annualReturns } = useMemo(() => {
@@ -177,14 +156,6 @@ export default function PortfolioMonthlyHeatmap({ curve }: Props) {
     }
 
     return { backgroundColor, color }
-  }
-
-  if (loading) {
-    return (
-      <Box height={260} display="flex" alignItems="center" justifyContent="center">
-        <CircularProgress />
-      </Box>
-    )
   }
 
   if (!years.length) {

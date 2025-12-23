@@ -1,25 +1,27 @@
 
 import PortfolioPatrimonyChart from '@/components/PortfolioPatrimonyChart'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { usePageTitle } from '@/contexts/PageTitleContext'
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { PatrimonyEntry } from '@/types'
 import {
-    Alert,
-    Box,
-    CircularProgress,
-    FormControlLabel,
-    MenuItem,
-    Paper,
-    Select,
-    SelectChangeEvent,
-    Stack,
-    Switch,
-    TextField,
+  Alert,
+  Box,
+  FormControlLabel,
+  Grid,
+  MenuItem,
+  Paper,
+  Select,
+  SelectChangeEvent,
+  Stack,
+  Switch,
+  TextField
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers'
 import dayjs, { Dayjs } from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
+import PortfolioMonthlyAportsChart from './PortfolioMonthlyAportsChart'
 
 export default function PortfolioPatrimonyEvolution() {
   const { setTitle } = usePageTitle()
@@ -74,9 +76,7 @@ export default function PortfolioPatrimonyEvolution() {
 
   if (loading) {
     return (
-      <Box height="80vh" display="flex" alignItems="center" justifyContent="center">
-        <CircularProgress size={64} thickness={4} />
-      </Box>
+      <LoadingSpinner />
     )
   }
 
@@ -220,21 +220,32 @@ export default function PortfolioPatrimonyEvolution() {
           </Stack>
         </Paper>
       </Stack>
+      <Grid container spacing={2}>
+        <Grid size={12}>
+          <PortfolioPatrimonyChart
+            size={520}
+            selected={selectedCategory}
+            patrimonyEvolution={filteredData}
+            projection={
+              showProjection
+                ? {
+                    rate: projectionRate / 100,
+                    years: projectionYears,
+                    monthlyContribution,
+                  }
+                : undefined
+            }
+          />
+        </Grid>
+        <Grid size={{ md: 6, sm: 12 }} sx={{ mt: 0, mb: 4, pl: 2.5, pr: 4 }}>
+          <PortfolioMonthlyAportsChart
+            height={300}
+            groupBy="month"
+            defaultRange="1y"
+          />
+        </Grid>
+      </Grid>
 
-      <PortfolioPatrimonyChart
-        size={750}
-        selected={selectedCategory}
-        patrimonyEvolution={filteredData}
-        projection={
-          showProjection
-            ? {
-                rate: projectionRate / 100,
-                years: projectionYears,
-                monthlyContribution,
-              }
-            : undefined
-        }
-      />
     </Box>
   )
 }

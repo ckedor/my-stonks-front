@@ -1,6 +1,5 @@
 // src/components/PortfolioMonthlyReturnsChart.tsx
-import { usePortfolioReturns } from '@/contexts/PortfolioReturnsContext'
-import { Box, CircularProgress, Stack, Typography, useTheme } from '@mui/material'
+import { Box, Stack, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 import {
@@ -14,22 +13,15 @@ import {
   YAxis,
 } from 'recharts'
 
-type CurveKind = 'category' | 'benchmark' | 'asset'
-
-interface SelectedCurve {
-  kind: CurveKind
-  key: string
+interface SeriesPoint {
+  date: string
+  value: number
 }
 
 interface Props {
   height?: number
   defaultRange?: string
-  curve?: SelectedCurve | null
-}
-
-interface SeriesPoint {
-  date: string
-  value: number
+  data: SeriesPoint[]
 }
 
 interface MonthlyPoint {
@@ -40,9 +32,8 @@ interface MonthlyPoint {
 export default function PortfolioMonthlyReturnsChart({
   height = 260,
   defaultRange = '1y',
-  curve,
+  data,
 }: Props) {
-  const { categoryReturns, assetReturns, benchmarks, loading } = usePortfolioReturns()
   const theme = useTheme()
 
   const successColor = theme.palette.success.main
@@ -53,20 +44,8 @@ export default function PortfolioMonthlyReturnsChart({
   const [range, setRange] = useState<string>(defaultRange)
 
   const baseSeries: SeriesPoint[] = useMemo(() => {
-    if (curve) {
-      if (curve.kind === 'category') {
-        return (categoryReturns[curve.key] || []).slice()
-      }
-      if (curve.kind === 'asset') {
-        return (assetReturns[curve.key] || []).slice()
-      }
-      if (curve.kind === 'benchmark') {
-        return (benchmarks[curve.key] || []).slice()
-      }
-    }
-    // fallback: Carteira
-    return (categoryReturns['portfolio'] || []).slice()
-  }, [curve, categoryReturns, assetReturns, benchmarks])
+    return data || []
+  }, [data])
 
   // datas completas da curva selecionada (para calcular ranges possíveis)
   const allDates = useMemo(
@@ -164,14 +143,6 @@ export default function PortfolioMonthlyReturnsChart({
     return base
   }, [totalYears, currentYear])
 
-  if (loading) {
-    return (
-      <Box height={height} display="flex" alignItems="center" justifyContent="center">
-        <CircularProgress />
-      </Box>
-    )
-  }
-
   if (!monthlyData.length) {
     return (
       <Box height={height} display="flex" alignItems="center" justifyContent="center">
@@ -182,11 +153,6 @@ export default function PortfolioMonthlyReturnsChart({
     )
   }
 
-  const title =
-    curve?.kind === 'benchmark'
-      ? `Desempenho Mensal - ${curve.key}`
-      : 'Desempenho Mensal'
-
   return (
     <Box sx={{ mt: 4, ml: 1.8, mr: 1.8 }}>
       <Stack
@@ -195,7 +161,7 @@ export default function PortfolioMonthlyReturnsChart({
         alignItems="center"
         sx={{ mb: 1, ml: 1, mr: 1 }}
       >
-        <Typography variant="h6">{title}</Typography>
+        <Typography variant="h6">Desempenho Mensal</Typography>
 
         {/* Timeframes (mesmo estilo do primeiro gráfico) */}
         <Stack direction="row" spacing={1}>

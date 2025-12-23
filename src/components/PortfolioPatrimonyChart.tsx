@@ -50,9 +50,9 @@ export default function PortfolioPatrimonyChart({
 
     const aportedValue =
       showAported &&
-      typeof (entry as any).aported === 'number' &&
-      Number.isFinite((entry as any).aported)
-        ? ((entry as any).aported as number)
+      typeof (entry as any).acc_aported === 'number' &&
+      Number.isFinite((entry as any).acc_aported)
+        ? ((entry as any).acc_aported as number)
         : null
 
     return {
@@ -60,7 +60,7 @@ export default function PortfolioPatrimonyChart({
       rawDate: raw, // dayjs para cálculos/tooltip
       dateLabel: raw.format('MM/YY'),
       value: entry[key] as number,
-      aported: aportedValue,
+      acc_aported: aportedValue,
     }
   })
 
@@ -82,8 +82,8 @@ export default function PortfolioPatrimonyChart({
     const dailyRate = Math.pow(1 + rate, 1 / 365)
 
     const lastAportedBase =
-      showAported && typeof last.aported === 'number' && Number.isFinite(last.aported)
-        ? (last.aported as number)
+      showAported && typeof last.acc_aported === 'number' && Number.isFinite(last.acc_aported)
+        ? (last.acc_aported as number)
         : 0
 
     const points: {
@@ -121,12 +121,12 @@ export default function PortfolioPatrimonyChart({
   // Junta histórico e projeção
   const mergedData = useMemo(() => {
     const baseMapped = baseData.map(
-      ({ ts, rawDate, dateLabel, value, aported }) => ({
+      ({ ts, rawDate, dateLabel, value, acc_aported }) => ({
         ts,
         rawDate,
         dateLabel,
         value,
-        aported,
+        acc_aported,
         projection: null as number | null,
         aportedProjection: null as number | null,
       }),
@@ -137,7 +137,7 @@ export default function PortfolioPatrimonyChart({
         rawDate,
         dateLabel,
         value: null as number | null,
-        aported: null as number | null,
+        acc_aported: null as number | null,
         projection,
         aportedProjection,
       }),
@@ -155,8 +155,8 @@ export default function PortfolioPatrimonyChart({
       if (typeof d.projection === 'number' && Number.isFinite(d.projection)) {
         if (d.projection > maxVal) maxVal = d.projection
       }
-      if (typeof d.aported === 'number' && Number.isFinite(d.aported)) {
-        if (d.aported > maxVal) maxVal = d.aported
+      if (typeof d.acc_aported === 'number' && Number.isFinite(d.acc_aported)) {
+        if (d.acc_aported > maxVal) maxVal = d.acc_aported
       }
       if (
         typeof d.aportedProjection === 'number' &&
@@ -243,7 +243,7 @@ export default function PortfolioPatrimonyChart({
           {showAported && (
             <Line
               type="monotone"
-              dataKey="aported"
+              dataKey="acc_aported"
               strokeWidth={2}
               dot={false}
               stroke={aportedColor}

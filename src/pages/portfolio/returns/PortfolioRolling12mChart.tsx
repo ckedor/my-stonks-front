@@ -1,6 +1,5 @@
 // src/components/PortfolioRolling12mChart.tsx
-import { usePortfolioReturns } from '@/contexts/PortfolioReturnsContext'
-import { Box, CircularProgress, Typography, useTheme } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import {
@@ -14,21 +13,14 @@ import {
   YAxis,
 } from 'recharts'
 
-type CurveKind = 'category' | 'benchmark' | 'asset'
-
-interface SelectedCurve {
-  kind: CurveKind
-  key: string
+interface SeriesPoint {
+  date: string
+  value: number
 }
 
 interface Props {
   height?: number
-  curve?: SelectedCurve | null
-}
-
-interface SeriesPoint {
-  date: string
-  value: number
+  data: SeriesPoint[]
 }
 
 interface RollingPoint {
@@ -38,9 +30,8 @@ interface RollingPoint {
 
 export default function PortfolioRolling12mChart({
   height = 260,
-  curve,
+  data,
 }: Props) {
-  const { categoryReturns, assetReturns, benchmarks, loading } = usePortfolioReturns()
   const theme = useTheme()
 
   const lineColor = theme.palette.primary.main
@@ -50,20 +41,8 @@ export default function PortfolioRolling12mChart({
 
   // série base diária da curva selecionada (sempre completa)
   const baseSeries: SeriesPoint[] = useMemo(() => {
-    if (curve) {
-      if (curve.kind === 'category') {
-        return (categoryReturns[curve.key] || []).slice()
-      }
-      if (curve.kind === 'asset') {
-        return (assetReturns[curve.key] || []).slice()
-      }
-      if (curve.kind === 'benchmark') {
-        return (benchmarks[curve.key] || []).slice()
-      }
-    }
-    // fallback: Carteira
-    return (categoryReturns['portfolio'] || []).slice()
-  }, [curve, categoryReturns, assetReturns, benchmarks])
+    return data || []
+  }, [data])
 
   // Rolling 12m calculado em cima da série COMPLETA
   const rollingAll: RollingPoint[] = useMemo(() => {
@@ -161,14 +140,6 @@ export default function PortfolioRolling12mChart({
     return ticks.length ? ticks : displayData.map((p) => p.date)
   }, [displayData])
 
-  if (loading) {
-    return (
-      <Box height={height} display="flex" alignItems="center" justifyContent="center">
-        <CircularProgress />
-      </Box>
-    )
-  }
-
   if (!displayData.length || numericValues.length === 0) {
     return (
       <Box height={height} display="flex" alignItems="center" justifyContent="center">
@@ -179,15 +150,10 @@ export default function PortfolioRolling12mChart({
     )
   }
 
-  const title =
-    curve?.kind === 'benchmark'
-      ? `Retorno 12 meses - ${curve.key}`
-      : 'Retorno 12 meses'
-
   return (
     <Box sx={{ mt: 4, ml: 1.8, mr: 1.8 }}>
       <Typography variant="h6" sx={{ mb: 1, ml: 1 }}>
-        {title}
+        Retorno 12 meses
       </Typography>
       <Box height={height}>
         <ResponsiveContainer width="100%" height="100%">
