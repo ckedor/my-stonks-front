@@ -1,4 +1,3 @@
-
 import {
   Box,
   Paper,
@@ -41,8 +40,10 @@ export default function PositionTable({
   const dangerColor = theme.palette.error.main
   const successColor = theme.palette.success.main
 
-  const returnsMap = useMemo(() => {
-    const result: Record<string, number> = {}
+  const { returns12mMap, accMap } = useMemo(() => {
+    const returns12mMap: Record<string, number> = {}
+    const accMap: Record<string, number> = {}
+
     const now = dayjs()
     const twelveMonthsAgo = now.subtract(12, 'month')
 
@@ -52,6 +53,13 @@ export default function PositionTable({
 
       const sorted = [...series].sort((a, b) => dayjs(a.date).diff(dayjs(b.date)))
       const latest = sorted.at(-1)
+
+      // Acumulado desde o começo (a série já é cumprod - 1)
+      if (latest) {
+        accMap[category] = latest.value * 100
+      }
+
+      // 12m (por fatores, não por diferença)
       const twelveBack = sorted.reduce((closest, curr) => {
         return Math.abs(dayjs(curr.date).diff(twelveMonthsAgo)) <
           Math.abs(dayjs(closest.date).diff(twelveMonthsAgo))
@@ -59,12 +67,14 @@ export default function PositionTable({
           : closest
       }, sorted[0])
 
-      if (latest && twelveBack && twelveBack.value !== 0) {
-        result[category] = (latest.value - twelveBack.value) * 100
+      if (latest && twelveBack) {
+        const a = 1 + latest.value
+        const b = 1 + twelveBack.value
+        if (b > 0) returns12mMap[category] = ((a / b) - 1) * 100
       }
     }
 
-    return result
+    return { returns12mMap, accMap }
   }, [returns])
 
   const data = useMemo(() => {
@@ -82,13 +92,19 @@ export default function PositionTable({
       .map(([name, value]) => ({
         category: name,
         value,
-        percentage: (value / total) * 100,
-        return12m: returnsMap[name] ?? null,
+        percentage: total ? (value / total) * 100 : 0,
+        returnAcc: accMap[name] ?? null,
+        return12m: returns12mMap[name] ?? null,
       }))
       .sort((a, b) => b.value - a.value)
 
-    return { rows, total, return12mPortfolio: returnsMap['portfolio'] ?? null }
-  }, [positions, returnsMap])
+    return {
+      rows,
+      total,
+      returnAccPortfolio: accMap['portfolio'] ?? null,
+      return12mPortfolio: returns12mMap['portfolio'] ?? null,
+    }
+  }, [positions, accMap, returns12mMap])
 
   const cellSx = { py: 1.3, px: 1.8, fontSize: 15 }
 
@@ -116,6 +132,12 @@ export default function PositionTable({
               <TableCell sx={cellSx} align="right">
                 <strong>Valor</strong>
               </TableCell>
+
+              {/* NOVA COLUNA */}
+              <TableCell sx={cellSx} align="right">
+                <strong>Rent. acum.</strong>
+              </TableCell>
+
               <TableCell sx={cellSx} align="right">
                 <strong>Rent. 12m</strong>
               </TableCell>
@@ -124,6 +146,7 @@ export default function PositionTable({
               </TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {data.rows.map((row) => (
               <TableRow
@@ -134,20 +157,30 @@ export default function PositionTable({
                 sx={{ cursor: 'pointer' }}
               >
                 <TableCell sx={cellSx}>{row.category}</TableCell>
+
                 <TableCell sx={cellSx} align="right">
                   {`R$ ${row.value.toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}`}
                 </TableCell>
+
+                {/* NOVA COLUNA */}
+                <TableCell sx={{ ...cellSx, color: getColor(row.returnAcc) }} align="right">
+                  {row.returnAcc != null ? `${row.returnAcc.toFixed(2)} %` : '—'}
+                </TableCell>
+
                 <TableCell sx={{ ...cellSx, color: getColor(row.return12m) }} align="right">
                   {row.return12m != null ? `${row.return12m.toFixed(2)} %` : '—'}
                 </TableCell>
+
                 <TableCell sx={cellSx} align="right">
                   {`${row.percentage.toFixed(2)} %`}
                 </TableCell>
               </TableRow>
             ))}
+
+            {/* Total */}
             <TableRow
               hover
               onClick={() => handleClick('portfolio')}
@@ -157,6 +190,7 @@ export default function PositionTable({
               <TableCell sx={cellSx}>
                 <strong>Total</strong>
               </TableCell>
+
               <TableCell sx={cellSx} align="right">
                 <strong>
                   {`R$ ${data.total.toLocaleString('pt-BR', {
@@ -165,6 +199,14 @@ export default function PositionTable({
                   })}`}
                 </strong>
               </TableCell>
+
+              {/* NOVA COLUNA */}
+              <TableCell sx={{ ...cellSx, color: getColor(data.returnAccPortfolio) }} align="right">
+                <strong>
+                  {data.returnAccPortfolio != null ? `${data.returnAccPortfolio.toFixed(2)} %` : '—'}
+                </strong>
+              </TableCell>
+
               <TableCell sx={{ ...cellSx, color: getColor(data.return12mPortfolio) }} align="right">
                 <strong>
                   {data.return12mPortfolio != null
@@ -172,6 +214,7 @@ export default function PositionTable({
                     : '—'}
                 </strong>
               </TableCell>
+
               <TableCell sx={cellSx} align="right">
                 <strong>100.00 %</strong>
               </TableCell>

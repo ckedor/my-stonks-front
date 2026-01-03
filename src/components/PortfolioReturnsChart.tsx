@@ -119,11 +119,38 @@ export default function PortfolioReturnsChart({
   }, [allDates, range])
 
   const normalizeReturns = (series: { date: string; value: number }[], dates: string[]) => {
-    const valuesMap = Object.fromEntries(series.map(({ date, value }) => [date, value]))
+    if (!dates.length) return []
+
+    // ordene a série uma vez
+    const sorted = [...series].sort((a, b) => dayjs(a.date).unix() - dayjs(b.date).unix())
+    const valuesMap = new Map(sorted.map((p) => [p.date, p.value]))
+
     const startDate = dates[0]
-    const baseValue = valuesMap[startDate] ?? 0
-    return dates.map((date) => ({ date, value: (valuesMap[date] ?? baseValue) - baseValue }))
+
+    // baseValue: último valor conhecido em <= startDate (se não existir, 0)
+    let baseValue = 0
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      if (!dayjs(sorted[i].date).isAfter(startDate)) {
+        baseValue = sorted[i].value
+        break
+      }
+    }
+
+    // “last known” para forward-fill ao longo do range
+    let lastKnown = baseValue
+
+    return dates.map((date) => {
+      if (valuesMap.has(date)) lastKnown = valuesMap.get(date) as number
+
+      // rebasing correto (evita b <= -1)
+      const denom = 1 + baseValue
+      const numer = 1 + lastKnown
+      const rebased = denom > 0 ? (numer / denom) - 1 : 0
+
+      return { date, value: rebased }
+    })
   }
+
 
   const data = useMemo(() => {
     const map: Record<string, any> = {}
