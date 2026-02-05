@@ -1,17 +1,17 @@
 import {
   Box,
-  Paper,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableRow,
-  useTheme,
+  useTheme
 } from '@mui/material'
+
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 
+import AppCard from '@/components/ui/AppCard'
 import { ReturnsEntry } from '@/types'
 
 interface Position {
@@ -122,7 +122,7 @@ export default function PositionTable({
 
   return (
     <Box>
-      <TableContainer component={Paper}>
+      <AppCard noPadding>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -221,7 +221,7 @@ export default function PositionTable({
             </TableRow>
           </TableBody>
         </Table>
-      </TableContainer>
+      </AppCard>
     </Box>
   )
 }

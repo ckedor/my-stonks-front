@@ -7,8 +7,13 @@ declare module '@mui/material/styles' {
       colors: string[]
       label: string
     }
-    golden: string,
+    golden: string
     dark: string
+    sidebar: string
+    topbar: {
+      background: string
+      text: string
+    }
   }
 
   interface PaletteOptions {
@@ -19,6 +24,11 @@ declare module '@mui/material/styles' {
     }
     golden?: string
     dark?: string
+    sidebar?: string
+    topbar?: {
+      background?: string
+      text?: string
+    }
   }
 }
 
@@ -26,14 +36,19 @@ export const lightTheme = createTheme({
   palette: {
     mode: 'light',
     background: {
-      default: '#f8f4eeff', // areia-clara suave
-      paper:   '#f1eee9ff', // contraste leve nos cards
+      default: 'rgb(249, 243, 234)', // areia-clara suave
+      paper:   'rgb(249, 245, 238)', // contraste leve nos cards
     },
     text: {
       primary:   '#3b2f2f', // marrom escuro elegante
       secondary: '#6e5e52', // tom mais quente para subtítulos
     },
     dark: '#3b2f2f',
+    sidebar: '#f8f4eeff',
+    topbar: {
+      background: '#F0E6D4',  // cor de fundo do topbar
+      text: '#4A3A2A',        // cor do texto/ícones do topbar
+    },
     primary:   { main: '#a67c52' },   // marrom-terra sofisticado
     secondary: { main: '#d4a056' },   // bege acinzentado para contrastes
     error:     { main: '#c14d36' },   // terracota quente

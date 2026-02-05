@@ -40,11 +40,19 @@ interface Position {
   type: string
   asset_id: number
   twelve_months_return: number
+  acc_return: number
+  broker_name?: string
+  broker_id?: number
 }
 
-export default function AssetList({ positions }: { positions: Position[] }) {
+interface AssetListProps {
+  positions: Position[]
+  groupBy?: 'category' | 'asset' | 'type' | 'class' | 'broker'
+  onGroupByChange?: (groupBy: 'category' | 'asset' | 'type' | 'class' | 'broker') => void
+}
+
+export default function AssetList({ positions, groupBy = 'category', onGroupByChange }: AssetListProps) {
   const { selectedPortfolio, userCategories } = usePortfolio()
-  const [groupBy, setGroupBy] = useState<'category' | 'asset' | 'type' | 'class'>('category')
   const [search, setSearch] = useState('')
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -71,7 +79,9 @@ export default function AssetList({ positions }: { positions: Position[] }) {
           ? pos.type
           : groupBy === 'class'
             ? pos.class
-            : 'Ativos'
+            : groupBy === 'broker'
+              ? pos.broker_name || '(Sem corretora)'
+              : 'Ativos'
 
     if (!acc[key]) acc[key] = []
     acc[key].push(pos)
@@ -128,12 +138,16 @@ export default function AssetList({ positions }: { positions: Position[] }) {
           <Select
             value={groupBy}
             label="Agrupar"
-            onChange={(e) => setGroupBy(e.target.value as any)}
+            onChange={(e) => {
+              const newGroupBy = e.target.value as 'category' | 'asset' | 'type' | 'class' | 'broker'
+              onGroupByChange?.(newGroupBy)
+            }}
           >
             <MenuItem value="category">Categoria Usuário</MenuItem>
             <MenuItem value="asset">Ativo</MenuItem>
             <MenuItem value="type">Produto</MenuItem>
             <MenuItem value="class">Classe</MenuItem>
+            <MenuItem value="broker">Corretora</MenuItem>
           </Select>
         </FormControl>
 
@@ -172,7 +186,7 @@ export default function AssetList({ positions }: { positions: Position[] }) {
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell colSpan={6} align="right">
+                    <TableCell colSpan={7} align="right">
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                         TOTAL: R$ {total.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                       </Typography>
@@ -190,7 +204,10 @@ export default function AssetList({ positions }: { positions: Position[] }) {
                       Preço Unitário
                     </TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>
-                      Rentabilidade 12M
+                      Rent. 12m
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      Rent. Acum.
                     </TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>
                       Valor Total
@@ -236,6 +253,23 @@ export default function AssetList({ positions }: { positions: Position[] }) {
                         {pos.twelve_months_return == null
                           ? '—'
                           : `${(pos.twelve_months_return * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`}
+                      </TableCell>
+                      <TableCell
+                        align="right"
+                        sx={{
+                          color:
+                            pos.acc_return == null
+                              ? theme.palette.text.primary
+                              : pos.acc_return > 0
+                                ? positiveColor
+                                : pos.acc_return < 0
+                                  ? negativeColor
+                                  : theme.palette.text.primary,
+                        }}
+                      >
+                        {pos.acc_return == null
+                          ? '—'
+                          : `${(pos.acc_return * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`}
                       </TableCell>
                       <TableCell align="right">
                         R${' '}

@@ -15,10 +15,11 @@ export default function PortfolioAssetsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [tab, setTab] = useState(0)
+  const [groupBy, setGroupBy] = useState<'category' | 'asset' | 'type' | 'class' | 'broker'>('category')
 
   useEffect(() => {
     setTitle('Ativos em Carteira')
-  }, [])
+  }, [setTitle])
 
   useEffect(() => {
     const fetchPositions = async () => {
@@ -26,8 +27,11 @@ export default function PortfolioAssetsPage() {
       setLoading(true)
       setError(false)
       try {
-        const { data } = await api.get(`/portfolio/${selectedPortfolio.id}/position`)
-        setPositions(data)
+        const endpoint = groupBy === 'broker'
+          ? `/portfolio/${selectedPortfolio.id}/position?group_by_broker=true`
+          : `/portfolio/${selectedPortfolio.id}/position`
+        const { data } = await api.get(endpoint)
+        setPositions(data) 
       } catch (err) {
         console.error('Erro ao buscar posições:', err)
         setError(true)
@@ -37,7 +41,7 @@ export default function PortfolioAssetsPage() {
     }
 
     fetchPositions()
-  }, [selectedPortfolio])
+  }, [selectedPortfolio, groupBy])
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTab(newValue)
@@ -60,7 +64,7 @@ export default function PortfolioAssetsPage() {
         </Typography>
       ) : (
         <>
-          {tab === 0 && <AssetListTable positions={positions} />}
+          {tab === 0 && <AssetListTable positions={positions} groupBy={groupBy} onGroupByChange={setGroupBy} />}
           {tab === 1 && <PortfolioHeatMap positions={positions} />}
         </>
       )}

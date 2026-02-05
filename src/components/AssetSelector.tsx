@@ -3,15 +3,15 @@ import api from '@/lib/api'
 import { Asset } from '@/types'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import {
-  CircularProgress,
-  FormControl,
-  Grid,
-  InputLabel,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  Select,
-  TextField,
+    CircularProgress,
+    FormControl,
+    Grid,
+    InputLabel,
+    ListItemIcon,
+    ListItemText,
+    MenuItem,
+    Select,
+    TextField,
 } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -26,18 +26,28 @@ interface AssetType {
 interface AssetSelectorProps {
   value: number | null
   onChange: (asset: Asset | null) => void
+  initialAsset?: { id: number; ticker: string; name: string; asset_type_id: number } | null
 }
 
 const CREATE_SENTINEL_ID = -1
 type AssetLike = Asset & { __create__?: boolean }
 
-export default function AssetSelector({ value, onChange }: AssetSelectorProps) {
+export default function AssetSelector({ value, onChange, initialAsset }: AssetSelectorProps) {
   const [assetTypes, setAssetTypes] = useState<AssetType[]>([])
   const [assets, setAssets] = useState<Asset[]>([])
-  const [selectedType, setSelectedType] = useState<number | ''>('')
+  const [selectedType, setSelectedType] = useState<number | ''>(initialAsset?.asset_type_id ?? '')
   const [loading, setLoading] = useState(true)
   const [popupOpen, setPopupOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+
+  // Quando initialAsset muda, define o tipo
+  useEffect(() => {
+    if (initialAsset?.asset_type_id) {
+      setSelectedType(initialAsset.asset_type_id)
+    } else {
+      setSelectedType('')
+    }
+  }, [initialAsset])
 
   const fetchTypes = useCallback(async () => {
     const res = await api.get('assets/types')
@@ -77,10 +87,15 @@ export default function AssetSelector({ value, onChange }: AssetSelectorProps) {
       : base
   }, [assets, selectedType, isFixedIncomeType])
 
-  const selectedAsset = useMemo(
-    () => filteredAssets.find((a) => a.id === value) || null,
-    [filteredAssets, value]
-  )
+  const selectedAsset = useMemo(() => {
+    const found = filteredAssets.find((a) => a.id === value)
+    if (found) return found
+    // Se não encontrou na lista filtrada mas temos initialAsset, usa ele
+    if (initialAsset && initialAsset.id === value) {
+      return initialAsset as Asset
+    }
+    return null
+  }, [filteredAssets, value, initialAsset])
 
   const refetchAssets = async (created?: Asset) => {
     setCreateOpen(false)

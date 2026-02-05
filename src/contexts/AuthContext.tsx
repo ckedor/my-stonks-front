@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 interface UserData {
   email: string
+  is_admin: boolean
 }
 
 interface AuthContextType {
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const fetchUser = async () => {
       try {
         const { data } = await api.get('/users/me')
-        setUser({ email: data.email })
+        setUser({ email: data.email, is_admin: data.is_admin || false })
       } catch {
         setUser(null)
       } finally {
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     api.defaults.headers.common.Authorization = `Bearer ${token}`
     try {
       const { data } = await api.get('/users/me')
-      setUser({ email: data.email })
+      setUser({ email: data.email, is_admin: data.is_admin || false })
     } catch {
       setUser(null)
       throw new Error('Erro ao buscar usuário')

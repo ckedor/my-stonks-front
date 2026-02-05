@@ -16,7 +16,7 @@ export function ThemeToggleButton() {
         onClick={toggleTheme}
         color="inherit"
         aria-label="alternar tema"
-        sx={{ ml: 1 }}
+        sx={{ ml: 1, color: 'topbar.text' }}
       >
         {icon}
       </IconButton>

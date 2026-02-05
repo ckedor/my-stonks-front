@@ -7,8 +7,13 @@ declare module '@mui/material/styles' {
       grid: string
       label: string
       colors: string[]
-    },
+    }
     golden: string
+    sidebar: string
+    topbar: {
+      background: string
+      text: string
+    }
   }
 
   interface PaletteOptions {
@@ -17,8 +22,13 @@ declare module '@mui/material/styles' {
       grid?: string
       label?: string
       colors?: string[]
-    },
+    }
     golden?: string
+    sidebar?: string
+    topbar?: {
+      background?: string
+      text?: string
+    }
   }
 }
 
@@ -34,6 +44,12 @@ export const darkTheme = createTheme({
       secondary: '#B0B4BA',
     },
     dark: '#3b2f2f',
+    sidebar: '#3e3e3eff',
+    // TOPBAR CONFIG - altere aqui para testar combinações
+    topbar: {
+      background: '#3e3e3eff',  // cor de fundo do topbar
+      text: '#bebfc2ff',        // cor do texto/ícones do topbar
+    },
     primary:   { main: '#e1cfcaff' },
     secondary: { main: '#d1705fff' },
     error:    { main: '#ec786bff' },

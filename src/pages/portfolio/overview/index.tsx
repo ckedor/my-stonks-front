@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react'
 import PortfolioDividendsChart from '../../../components/PortfolioDividendsChart'
 import PortfolioPatrimonyChart from '../../../components/PortfolioPatrimonyChart'
 import PortfolioReturnsChart from '../../../components/PortfolioReturnsChart'
-import TradeForm from '../../../components/TradeForm'
 import { usePageTitle } from '../../../contexts/PageTitleContext'
 import { usePortfolio } from '../../../contexts/PortfolioContext'
 import { usePortfolioReturns } from '../../../contexts/PortfolioReturnsContext'
+import { useTradeForm } from '../../../contexts/TradeFormContext'
 import api from '../../../lib/api'
 import type { Dividend, PatrimonyEntry, PortfolioPositionEntry } from '../../../types'
 import PositionPieChart from './PositionPieChart'
@@ -15,6 +15,7 @@ import PositionTable from './PositionTable'
 export default function PortfolioOverviewPage() {
   const { selectedPortfolio, userCategories, portfolioRefreshKey } = usePortfolio()
   const { categoryReturns } = usePortfolioReturns()
+  const { openTradeForm } = useTradeForm()
 
   const [positions, setPositions] = useState<PortfolioPositionEntry[] | null>(null)
   const [patrimonyEvolution, setPatrimonyEvolution] = useState<PatrimonyEntry[] | null>(null)
@@ -24,7 +25,6 @@ export default function PortfolioOverviewPage() {
   const [chartMode, setChartMode] = useState<'patrimony' | 'dividends'>('patrimony')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [openTradeForm, setOpenTradeForm] = useState(false)
 
   const { setTitle } = usePageTitle()
 
@@ -118,12 +118,10 @@ export default function PortfolioOverviewPage() {
           variant="contained"
           color="primary"
           sx={{ mt: 2 }}
-          onClick={() => setOpenTradeForm(true)}
+          onClick={() => openTradeForm()}
         >
           Cadastrar Primeira Compra
         </Button>
-
-        <TradeForm open={openTradeForm} onClose={() => setOpenTradeForm(false)} assetId={0} />
       </Box>
     )
   }
@@ -138,7 +136,7 @@ export default function PortfolioOverviewPage() {
 
   return (
     <Box>
-      <Grid container direction="row">
+      <Grid container direction="row" spacing={2}>
         <Grid size={{ xs: 12, md: 12, lg: 6 }}>
           <PositionPieChart positions={positions} selectedCategory={selectedCategory} />
         </Grid>
@@ -156,7 +154,7 @@ export default function PortfolioOverviewPage() {
         </Grid>
       </Grid>
 
-      <Grid container direction="row" mt={1}>
+      <Grid container direction="row" mt={1} spacing={2}>
         <Grid size={{ xs: 12, md: 12, lg: 12, xl: 6 }}>
           <PortfolioReturnsChart
             size={380}
@@ -167,7 +165,7 @@ export default function PortfolioOverviewPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 12, lg: 12, xl: 6 }}>
-          <Stack direction="row" justifyContent="flex-end" mt={2.5} mb={1.8} pr={1.2} spacing={2}>
+          <Stack direction="row" justifyContent="flex-end" mb={1.8} pr={1.2} spacing={2}>
             <Typography
               variant="body2"
               sx={{
@@ -201,8 +199,6 @@ export default function PortfolioOverviewPage() {
           )}
         </Grid>
       </Grid>
-
-      <TradeForm open={openTradeForm} onClose={() => setOpenTradeForm(false)} assetId={0} />
     </Box>
   )
 }

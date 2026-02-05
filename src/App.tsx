@@ -1,11 +1,17 @@
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import "./App.css";
 import { AuthProvider } from "./contexts/AuthContext";
+import MainLayout from "./layouts/MainLayout";
+import AdminAssetsPage from "./pages/admin/assets/page";
+import AdminBrokersPage from "./pages/admin/brokers/page";
+import AdminEventsPage from "./pages/admin/events/page";
+import AdminLayout from "./pages/admin/layout";
+import AdminUsersPage from "./pages/admin/users/page";
 import LoginPage from "./pages/login";
+import MarketAtivosPage from "./pages/market/ativos/page";
 import PortfolioAssetsPage from "./pages/portfolio/asset";
 import PortfolioAssetPage from "./pages/portfolio/asset/[id]/page";
 import PortfolioDividendsPage from "./pages/portfolio/dividends/page";
-import PortfolioLayout from "./pages/portfolio/layout";
 import PortfolioOverviewPage from "./pages/portfolio/overview";
 import PortfolioReturnsPage from "./pages/portfolio/returns/page";
 import TaxIncomePage from "./pages/portfolio/tax-income/page";
@@ -16,32 +22,41 @@ import { ThemeRegistry } from "./theme";
 
 const router = createBrowserRouter([
   {
-    path: "/portfolio",
-    element: <PortfolioLayout />,
+    path: "/",
+    element: <MainLayout />,
     children: [
-      { path: "overview", element: <PortfolioOverviewPage /> },
-      { path: "asset", element: <PortfolioAssetsPage /> },
-      { path: "asset/:id", element: <PortfolioAssetPage /> },
-      { path: "dividends", element:  <PortfolioDividendsPage /> },
-      { path: "returns", element:  <PortfolioReturnsPage /> },
-      { path: "tax-income", element:  <TaxIncomePage /> },
-      { path: "trades", element:  <PortfolioTransactionsPage /> },
-      { path: "wealth", element:  <PortfolioPatrimonyEvolution /> },
-      { path: "user-configurations", element: <UserConfigurationPage /> },
+      { index: true, element: <Navigate to="/portfolio/overview" replace /> },
+      { path: "portfolio/overview", element: <PortfolioOverviewPage /> },
+      { path: "portfolio/asset", element: <PortfolioAssetsPage /> },
+      { path: "portfolio/asset/:id", element: <PortfolioAssetPage /> },
+      { path: "portfolio/dividends", element: <PortfolioDividendsPage /> },
+      { path: "portfolio/returns", element: <PortfolioReturnsPage /> },
+      { path: "portfolio/tax-income", element: <TaxIncomePage /> },
+      { path: "portfolio/trades", element: <PortfolioTransactionsPage /> },
+      { path: "portfolio/wealth", element: <PortfolioPatrimonyEvolution /> },
+      { path: "portfolio/user-configurations", element: <UserConfigurationPage /> },
+      { path: "market/assets", element: <MarketAtivosPage /> },
     ],
   },
   {
-    path: "/login", 
-    element: <LoginPage />,
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      { path: "assets", element: <AdminAssetsPage /> },
+      { path: "brokers", element: <AdminBrokersPage /> },
+      { path: "events", element: <AdminEventsPage /> },
+      { path: "users", element: <AdminUsersPage /> },
+      { index: true, element: <Navigate to="/admin/assets" replace /> },
+    ],
   },
   {
-    path: "/",
-    element: <Navigate to="/portfolio/overview" replace /> 
+    path: "/login",
+    element: <LoginPage />,
   },
   {
     path: "/*",
     element: <div>404 Not Found</div>,
-  }
+  },
 ]);
 
 function App() {

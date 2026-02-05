@@ -22,7 +22,7 @@ import TokenIcon from '@mui/icons-material/Token'
 
 import CategoryForm from '@/components/CategoryForm'
 import DividendForm from '@/components/DividendForm'
-import TradeForm from '@/components/TradeForm'
+import { useTradeForm } from '@/contexts/TradeFormContext'
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -52,9 +52,9 @@ export default function Sidebar({
 }) {
   const navigate = useNavigate()
   const pathname = window.location.pathname
+  const { openTradeForm } = useTradeForm()
 
   const [categoryFormOpen, setCategoryFormOpen] = useState(false)
-  const [tradeFormOpen, setTradeFormOpen] = useState(false)
   const [dividendFormOpen, setDividendFormOpen] = useState(false)
 
   const drawerContent = (
@@ -91,7 +91,7 @@ export default function Sidebar({
         <Divider sx={{ my: 1 }} />
 
         <List dense>
-          <ListItemButton onClick={() => setTradeFormOpen(true)}>
+          <ListItemButton onClick={() => openTradeForm()}>
             <ListItemIcon sx={{ minWidth: 30 }}>
               <AddIcon fontSize="small" />
             </ListItemIcon>
@@ -151,6 +151,7 @@ export default function Sidebar({
             pb: 1,
             height: '100vh',
             overflow: 'hidden',
+            bgcolor: 'background.default',
           },
         }}
       >
@@ -158,7 +159,6 @@ export default function Sidebar({
       </Drawer>
 
       <CategoryForm open={categoryFormOpen} onClose={() => setCategoryFormOpen(false)} />
-      <TradeForm open={tradeFormOpen} onClose={() => setTradeFormOpen(false)} assetId={0} />
       <DividendForm open={dividendFormOpen} onClose={() => setDividendFormOpen(false)} />
     </>
   )

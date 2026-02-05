@@ -74,7 +74,7 @@ export default function RecalculatePortfolioButton() {
     <>
       <Tooltip title={getTooltip()}>
         <span>
-          <IconButton onClick={handleClick} disabled={!selectedPortfolio}>
+          <IconButton onClick={handleClick} disabled={!selectedPortfolio} sx={{ color: 'topbar.text' }}>
             {getIcon()}
           </IconButton>
         </span>

@@ -10,6 +10,7 @@ type AppPieChartProps = {
   height: number
   isCurrency?: boolean
   colors?: string[]
+  onItemClick?: (label: string) => void
 }
 
 export default function AppPieChart({
@@ -17,6 +18,7 @@ export default function AppPieChart({
   height,
   isCurrency = false,
   colors,
+  onItemClick,
 }: AppPieChartProps) {
   const theme = useTheme()
   const fallbackColors = theme.palette.chart.colors
@@ -52,6 +54,8 @@ export default function AppPieChart({
             endAngle={-270}
             stroke={bgPage}
             strokeWidth={0}
+            onClick={(entry) => onItemClick?.(entry.label)}
+            style={{ cursor: onItemClick ? 'pointer' : 'default' }}
           >
             {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={activeColors[index % activeColors.length]} />
@@ -70,6 +74,7 @@ export default function AppPieChart({
             label={(props) => <OuterLabel {...props} labels={labels} />}
             startAngle={90}
             endAngle={-270}
+            tooltipType="none"
           />
 
           <Tooltip

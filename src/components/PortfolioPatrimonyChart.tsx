@@ -6,6 +6,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -36,6 +37,7 @@ export default function PortfolioPatrimonyChart({
   const labelColor = theme.palette.chart.label
   const lineColor = theme.palette.primary.main
   const aportedColor = theme.palette.secondary.main
+  const growthColor = theme.palette.success.main
 
   const showAported = key === 'portfolio'
 
@@ -55,20 +57,23 @@ export default function PortfolioPatrimonyChart({
         ? ((entry as any).acc_aported as number)
         : null
 
+    const value = entry[key] as number
+
+    const growth =
+      showAported && aportedValue !== null
+        ? Math.max(0, value - aportedValue)
+        : null
+
     return {
-      ts: raw.valueOf(), // timestamp para eixo temporal
-      rawDate: raw, // dayjs para cálculos/tooltip
+      ts: raw.valueOf(), 
+      rawDate: raw, 
       dateLabel: raw.format('MM/YY'),
-      value: entry[key] as number,
+      value,
       acc_aported: aportedValue,
+      growth,
     }
   })
 
-  // PROJEÇÃO:
-  // - principal = último valor da carteira rendendo à taxa "rate"
-  // - futureContrib = aportes mensais somados sem juros
-  // - projection = principal + futureContrib
-  // - aportedProjection = último aported histórico + futureContrib (SEM juros)
   const projectedData = useMemo(() => {
     if (!projection || baseData.length === 0) return []
 
@@ -92,6 +97,7 @@ export default function PortfolioPatrimonyChart({
       dateLabel: string
       projection: number
       aportedProjection: number
+      growthProjection: number
     }[] = []
 
     for (let i = 1; i <= days; i++) {
@@ -105,13 +111,16 @@ export default function PortfolioPatrimonyChart({
 
       const futureDate = last.rawDate.add(i, 'day')
       const aportedProjection = lastAportedBase + futureContrib
+      const projectionValue = principal + futureContrib
+      const growthProjection = Math.max(0, projectionValue - aportedProjection)
 
       points.push({
         ts: futureDate.valueOf(),
         rawDate: futureDate,
         dateLabel: futureDate.format('MM/YY'),
-        projection: principal + futureContrib,
+        projection: projectionValue,
         aportedProjection,
+        growthProjection,
       })
     }
 
@@ -121,25 +130,29 @@ export default function PortfolioPatrimonyChart({
   // Junta histórico e projeção
   const mergedData = useMemo(() => {
     const baseMapped = baseData.map(
-      ({ ts, rawDate, dateLabel, value, acc_aported }) => ({
+      ({ ts, rawDate, dateLabel, value, acc_aported, growth }) => ({
         ts,
         rawDate,
         dateLabel,
         value,
         acc_aported,
+        growth,
         projection: null as number | null,
         aportedProjection: null as number | null,
+        growthProjection: null as number | null,
       }),
     )
     const projectionMapped = projectedData.map(
-      ({ ts, rawDate, dateLabel, projection, aportedProjection }) => ({
+      ({ ts, rawDate, dateLabel, projection, aportedProjection, growthProjection }) => ({
         ts,
         rawDate,
         dateLabel,
         value: null as number | null,
         acc_aported: null as number | null,
+        growth: null as number | null,
         projection,
         aportedProjection,
+        growthProjection,
       }),
     )
     return [...baseMapped, ...projectionMapped]
@@ -177,6 +190,12 @@ export default function PortfolioPatrimonyChart({
 
   const yDomain: [number, number] = [0, dynamicYMax]
 
+  const lastHistorical = useMemo(() => {
+    const historical = mergedData.filter((d) => d.value !== null)
+    if (historical.length === 0) return null
+    return historical[historical.length - 1]
+  }, [mergedData])
+
   const januaryTicks = useMemo(() => {
     if (mergedData.length === 0) return []
 
@@ -197,7 +216,7 @@ export default function PortfolioPatrimonyChart({
   return (
     <Box>
       <ResponsiveContainer width="100%" height={size}>
-        <LineChart data={mergedData} margin={{ left: 48, top: 15 }}>
+        <LineChart data={mergedData} margin={{ left: 48, top: 15, right: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
 
           <XAxis
@@ -229,7 +248,6 @@ export default function PortfolioPatrimonyChart({
             }
           />
 
-          {/* Linha histórica principal */}
           <Line
             type="monotone"
             dataKey="value"
@@ -239,7 +257,6 @@ export default function PortfolioPatrimonyChart({
             name="Histórico"
           />
 
-          {/* Aportes históricos (API) – só para Carteira */}
           {showAported && (
             <Line
               type="monotone"
@@ -251,7 +268,17 @@ export default function PortfolioPatrimonyChart({
             />
           )}
 
-          {/* Projeção: principal rendendo + aportes sem juros */}
+          {showAported && (
+            <Line
+              type="monotone"
+              dataKey="growth"
+              strokeWidth={2}
+              dot={false}
+              stroke={growthColor}
+              name="Crescimento"
+            />
+          )}
+
           {projection && (
             <Line
               type="monotone"
@@ -264,7 +291,6 @@ export default function PortfolioPatrimonyChart({
             />
           )}
 
-          {/* Projeção dos aportes (estendendo a linha vermelha) */}
           {projection && showAported && (
             <Line
               type="monotone"
@@ -274,6 +300,61 @@ export default function PortfolioPatrimonyChart({
               stroke={aportedColor}
               strokeDasharray="5 5"
               name="Aportes projetados"
+            />
+          )}
+
+          {projection && showAported && (
+            <Line
+              type="monotone"
+              dataKey="growthProjection"
+              strokeWidth={2}
+              dot={false}
+              stroke={growthColor}
+              strokeDasharray="5 5"
+              name="Crescimento projetado"
+            />
+          )}
+
+          {lastHistorical && lastHistorical.value !== null && (
+            <ReferenceDot
+              x={lastHistorical.ts}
+              y={lastHistorical.value}
+              r={0}
+              label={{
+                value: `${(lastHistorical.value / 1000).toFixed(0)}K`,
+                position: 'right',
+                fill: lineColor,
+                fontSize: 11,
+                fontWeight: 'bold',
+              }}
+            />
+          )}
+          {lastHistorical && showAported && lastHistorical.acc_aported !== null && (
+            <ReferenceDot
+              x={lastHistorical.ts}
+              y={lastHistorical.acc_aported}
+              r={0}
+              label={{
+                value: `${(lastHistorical.acc_aported / 1000).toFixed(0)}K`,
+                position: 'right',
+                fill: aportedColor,
+                fontSize: 11,
+                fontWeight: 'bold',
+              }}
+            />
+          )}
+          {lastHistorical && showAported && lastHistorical.growth !== null && (
+            <ReferenceDot
+              x={lastHistorical.ts}
+              y={lastHistorical.growth}
+              r={0}
+              label={{
+                value: `${(lastHistorical.growth / 1000).toFixed(0)}K`,
+                position: 'right',
+                fill: growthColor,
+                fontSize: 11,
+                fontWeight: 'bold',
+              }}
             />
           )}
         </LineChart>

@@ -65,9 +65,10 @@ interface TradeFormProps {
   onSave?: () => void
   trade?: Trade
   assetId?: number
+  initialAsset?: { id: number; ticker: string; name: string; asset_type_id: number } | null
 }
 
-export default function TradeForm({ open, onClose, onSave, trade, assetId }: TradeFormProps) {
+export default function TradeForm({ open, onClose, onSave, trade, assetId, initialAsset }: TradeFormProps) {
   const isEdit = Boolean(trade)
   const { portfolios, selectedPortfolio } = usePortfolio()
 
@@ -112,14 +113,18 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
       setDate(dayjs())
       setBrokerId('')
       setPortfolioId(selectedPortfolio?.id ?? '')
-      setSelectedAsset(null)
+      if (initialAsset) {
+        setSelectedAsset(initialAsset as Asset)
+      } else {
+        setSelectedAsset(null)
+      }
     }
     setTouched(false)
-  }, [trade, open, selectedPortfolio])
+  }, [trade, open, selectedPortfolio, initialAsset])
 
   useEffect(() => {
     if (open) {
-      api.get('/brokers/list').then((res) => setBrokers(res.data))
+      api.get('/broker').then((res) => setBrokers(res.data))
     }
   }, [open])
 
@@ -229,6 +234,7 @@ export default function TradeForm({ open, onClose, onSave, trade, assetId }: Tra
               <AssetSelector
                 value={selectedAsset?.id ?? null}
                 onChange={setSelectedAsset}
+                initialAsset={initialAsset}
               />
             )}
 

@@ -6,6 +6,7 @@ import { usePortfolio } from '@/contexts/PortfolioContext'
 
 import AccountCircle from '@mui/icons-material/AccountCircle'
 import AddIcon from '@mui/icons-material/Add'
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import EditIcon from '@mui/icons-material/Edit'
 import ExpandMore from '@mui/icons-material/ExpandMore'
 import MenuIcon from '@mui/icons-material/Menu'
@@ -24,6 +25,7 @@ import {
   Typography
 } from '@mui/material'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import RecalculatePortfolioButton from '@/components/RecalculatePortfolioButton'
 import { ThemeToggleButton } from '@/components/ui/ThemeToggleButton'
@@ -38,6 +40,7 @@ export default function Topbar({
   const { user, logout } = useAuth()
   const { portfolios, loading, refreshPortfolio, selectedPortfolio, setSelectedPortfolio } =
     usePortfolio()
+  const navigate = useNavigate()
 
   const [selected, setSelected] = useState<number | null>(selectedPortfolio?.id ?? null)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -117,6 +120,14 @@ export default function Topbar({
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
               <MenuItem disabled>{user?.email}</MenuItem>
               <Divider />
+              {user?.is_admin && (
+                <MenuItem onClick={() => { setAnchorEl(null); navigate('/admin/assets'); }}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AdminPanelSettingsIcon fontSize="small" />
+                    Painel Administrativo
+                  </Box>
+                </MenuItem>
+              )}
               <MenuItem onClick={logout}>Sair</MenuItem>
             </Menu>
           </Box>
