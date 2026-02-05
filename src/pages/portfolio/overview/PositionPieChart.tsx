@@ -14,7 +14,7 @@ export default function PositionPieChart({ positions, selectedCategory }: Positi
   const { userCategories } = usePortfolio()
   const navigate = useNavigate()
 
-  const { data, colors, assetIdMap } = useMemo(() => {
+  const { data, colors, assetIdMap } = useMemo((): { data: Array<{ label: string; value: number }>; colors: string[]; assetIdMap: Record<string, number> } => {
     if (!positions) return { data: [], colors: [], assetIdMap: {} }
 
     if (selectedCategory === 'portfolio') {
@@ -59,7 +59,6 @@ export default function PositionPieChart({ positions, selectedCategory }: Positi
   }, [positions, selectedCategory, userCategories])
 
   const handleItemClick = (label: string) => {
-    // If we have an asset_id for this ticker, navigate to asset page
     const assetId = assetIdMap[label]
     if (assetId) {
       navigate(`/portfolio/asset/${assetId}`)
