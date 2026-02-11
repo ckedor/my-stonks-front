@@ -118,3 +118,37 @@ export interface Asset {
     name: string
   }
 }
+
+// Rebalancing types
+export interface AssetRebalancingEntry {
+  asset_id: number
+  ticker: string
+  name: string
+  category: string
+  category_id: number
+  current_value: number
+  current_pct_in_category: number
+  target_pct_in_category: number | null
+  target_value: number | null
+  diff_pct: number | null
+  diff_value: number | null
+}
+
+export interface CategoryRebalancingEntry {
+  category_id: number
+  category_name: string
+  color: string
+  current_value: number
+  current_pct: number
+  target_pct: number | null
+  target_value: number | null
+  diff_pct: number | null
+  diff_value: number | null
+  assets: AssetRebalancingEntry[]
+}
+
+export interface RebalancingResponse {
+  portfolio_id: number
+  total_value: number
+  categories: CategoryRebalancingEntry[]
+}

@@ -13,6 +13,7 @@ import PortfolioAssetsPage from "./pages/portfolio/asset";
 import PortfolioAssetPage from "./pages/portfolio/asset/[id]/page";
 import PortfolioDividendsPage from "./pages/portfolio/dividends/page";
 import PortfolioOverviewPage from "./pages/portfolio/overview";
+import RebalancingPage from "./pages/portfolio/rebalancing/page";
 import PortfolioReturnsPage from "./pages/portfolio/returns/page";
 import TaxIncomePage from "./pages/portfolio/tax-income/page";
 import PortfolioTransactionsPage from "./pages/portfolio/trades/page";
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { path: "portfolio/tax-income", element: <TaxIncomePage /> },
       { path: "portfolio/trades", element: <PortfolioTransactionsPage /> },
       { path: "portfolio/wealth", element: <PortfolioPatrimonyEvolution /> },
+      { path: "portfolio/rebalancing", element: <RebalancingPage /> },
       { path: "portfolio/user-configurations", element: <UserConfigurationPage /> },
       { path: "market/assets", element: <MarketAtivosPage /> },
     ],
