@@ -10,7 +10,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "strict": true,
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
