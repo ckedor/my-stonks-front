@@ -65,10 +65,13 @@ export default function DividendForm({ open, onClose, onSave, dividend }: Divide
         ticker: dividend.ticker,
         name: '',
         asset_type_id: 0,
+        asset_type: { id: 0, name: '', short_name: '', asset_class: { id: 0, name: '' } },
         quantity: 0,
         price: 0,
         average_price: 0,
         value: 0,
+        acc_return: null,
+        twelve_months_return: null,
         currency: { id: 1, name: 'Real' },
       })
     } else {

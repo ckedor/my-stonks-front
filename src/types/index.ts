@@ -85,7 +85,7 @@ export interface FixedIncomePositionEntry extends PortfolioPositionEntry {
 export interface Dividend {
   id: number
   asset_id: number
-  date: Date
+  date: string
   ticker: string
   amount: number
   category: string

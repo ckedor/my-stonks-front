@@ -4,6 +4,7 @@ import DividendsCategoryChart from '@/components/DividendsCategoryChart'
 import { usePageTitle } from '@/contexts/PageTitleContext'
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
+import { Dividend } from '@/types'
 import {
     Autocomplete,
     Box,
@@ -26,16 +27,6 @@ import {
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
-
-interface Dividend {
-  id: number
-  asset_id: number
-  ticker: string
-  category: string
-  amount: number
-  date: string
-  portfolio_id: number
-}
 
 export default function PortfolioDividendsPage() {
   const { setTitle } = usePageTitle()
