@@ -2,6 +2,7 @@ import GlobalTradeForm from '@/components/GlobalTradeForm'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageTitleProvider } from '@/contexts/PageTitleContext'
 import { PortfolioProvider } from '@/contexts/PortfolioContext'
+import { PortfolioPositionsProvider } from '@/contexts/PortfolioPositionsContext'
 import { PortfolioReturnsProvider } from '@/contexts/PortfolioReturnsContext'
 import { TradeFormProvider } from '@/contexts/TradeFormContext'
 
@@ -23,18 +24,20 @@ export default function MainLayout() {
   return (
     <PageTitleProvider>
       <PortfolioProvider>
+        <PortfolioPositionsProvider>
         <PortfolioReturnsProvider>
           <TradeFormProvider>
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
               <MainTopbar />
               <SubNavigation section={getCurrentSection(location.pathname)} />
-              <Box px={4} pt={2} pb={1} sx={{ flexGrow: 1, overflow: 'auto' }}>
+              <Box px={4} pb={1} sx={{ flexGrow: 1, overflow: 'auto' }}>
                 <Outlet />
               </Box>
             </Box>
             <GlobalTradeForm />
           </TradeFormProvider>
         </PortfolioReturnsProvider>
+        </PortfolioPositionsProvider>
       </PortfolioProvider>
     </PageTitleProvider>
   )

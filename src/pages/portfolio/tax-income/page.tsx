@@ -24,7 +24,7 @@ export default function TaxIncomePage() {
   if (!selectedPortfolio?.id) return null
 
   return (
-    <Box>
+    <Box pt={2}>
       <Box display="flex" alignItems="center" gap={4} mb={2}>
         <FormControl variant="standard" sx={{ minWidth: 120 }}>
           <InputLabel>Ano</InputLabel>

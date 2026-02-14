@@ -6,17 +6,17 @@ import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { PatrimonyEntry } from '@/types'
 import {
-  Alert,
-  Box,
-  FormControlLabel,
-  Grid,
-  MenuItem,
-  Paper,
-  Select,
-  SelectChangeEvent,
-  Stack,
-  Switch,
-  TextField
+    Alert,
+    Box,
+    FormControlLabel,
+    Grid,
+    MenuItem,
+    Paper,
+    Select,
+    SelectChangeEvent,
+    Stack,
+    Switch,
+    TextField
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers'
 import dayjs, { Dayjs } from 'dayjs'
@@ -89,7 +89,7 @@ export default function PortfolioPatrimonyEvolution() {
   }
 
   return (
-    <Box>
+    <Box pt={2}>
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         justifyContent="space-between"

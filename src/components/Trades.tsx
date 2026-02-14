@@ -2,17 +2,17 @@ import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { Trade } from '@/types'
 import {
-  Box,
-  Button,
-  CircularProgress,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
+    Box,
+    Button,
+    CircularProgress,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography,
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
@@ -49,7 +49,7 @@ export default function Trades({ assetId, assetTypes, currencyId }: TradesProps)
 
     const { data } = await api.get(`/portfolio/transaction/${selectedPortfolio.id}`, { params })
 
-    setTrades(data)
+    setTrades(data.sort((a: Trade, b: Trade) => new Date(b.date).getTime() - new Date(a.date).getTime()))
     setLoading(false)
   }
 
@@ -122,15 +122,8 @@ export default function Trades({ assetId, assetTypes, currencyId }: TradesProps)
                   onClick={() => handleEdit(trade)}
                   sx={{
                     cursor: 'pointer',
-                    backgroundColor:
-                      trade.type === 'Venda'
-                        ? 'rgba(255, 152, 0, 0.05)'
-                        : 'rgba(33, 150, 243, 0.05)',
                     '&:hover': {
-                      backgroundColor:
-                        trade.type === 'Venda'
-                          ? 'rgba(255, 152, 0, 0.12)'
-                          : 'rgba(33, 150, 243, 0.12)',
+                      backgroundColor: 'action.hover',
                     },
                   }}
                 >

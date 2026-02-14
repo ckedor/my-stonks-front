@@ -86,7 +86,7 @@ export default function UserConfigurationPage() {
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
+    <Box display="flex" justifyContent="center" alignItems="center" mt={4} pt={2}>
       {loading ? (
         <CircularProgress />
       ) : (

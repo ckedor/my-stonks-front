@@ -37,7 +37,7 @@ export default function PortfolioReturnsPage() {
   }
 
   return (
-    <Box sx={{ p: 1 }}>
+    <Box sx={{ p: 1, pt: 2 }}>
       <Grid container spacing={2}>
         {/* Linha 1 - Gráfico principal full width */}
         <Grid size={12}>

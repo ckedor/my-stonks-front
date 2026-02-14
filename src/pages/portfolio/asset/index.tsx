@@ -48,7 +48,7 @@ export default function PortfolioAssetsPage() {
   }
 
   return (
-    <>
+    <Box pt={2}>
       <Tabs value={tab} onChange={handleTabChange} centered variant="standard" sx={{ mb: 3 }}>
         <Tab label="Tabela" />
         <Tab label="Heatmap" />
@@ -68,6 +68,6 @@ export default function PortfolioAssetsPage() {
           {tab === 1 && <PortfolioHeatMap positions={positions} />}
         </>
       )}
-    </>
+    </Box>
   )
 }

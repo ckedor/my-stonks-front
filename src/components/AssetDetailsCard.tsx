@@ -1,84 +1,152 @@
-import { Box, Grid, Typography } from '@mui/material'
+import { Asset } from '@/types'
+import { Box, Card, CardContent, Chip, Divider, Stack, Typography } from '@mui/material'
 
 interface AssetDetailsCardProps {
-  asset: any
+  asset: Asset
 }
 
-function DetailField({
+function InfoRow({
   label,
   value,
-  isReturn = false,
+  color,
 }: {
   label: string
-  value: string | number | null | undefined
-  isReturn?: boolean
+  value: string
+  color?: string
 }) {
-  const isNull = value === null || value === undefined || Number.isNaN(value)
-  const numericValue =
-    typeof value === 'number' ? value : parseFloat(String(value).replace('%', '')) / 100
-
-  const displayValue = isReturn
-    ? isNull
-      ? '—'
-      : (numericValue * 100).toFixed(2) + '%'
-    : (value ?? '—')
-
-  const color = !isReturn || isNull ? 'text.primary' : numericValue > 0 ? 'success.main' : 'error.main'
-
   return (
-    <Grid size={{ xs: 4, md: 2 }}>
-      <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+    <Box display="flex" justifyContent="space-between" alignItems="center" py={0.5}>
+      <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
-      <Typography fontWeight="bold" color={color}>
-        {displayValue}
+      <Typography variant="body2" fontWeight={600} color={color ?? 'text.primary'}>
+        {value}
       </Typography>
-    </Grid>
+    </Box>
   )
 }
 
+function formatCurrency(value: number) {
+  return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function formatReturn(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) return { text: '—', color: 'text.secondary' }
+  const pct = value * 100
+  return {
+    text: `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`,
+    color: pct > 0 ? 'success.main' : pct < 0 ? 'error.main' : 'text.primary',
+  }
+}
+
 export default function AssetDetailsCard({ asset }: AssetDetailsCardProps) {
+  const accReturn = formatReturn(asset.acc_return)
+  const twelveReturn = formatReturn(asset.twelve_months_return)
+
   return (
-    <Box p={3} boxShadow={3} borderRadius={2} sx={{ backgroundColor: 'background.paper' }}>
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'box-shadow 0.2s',
+      }}
+    >
+      <CardContent sx={{ flex: 1, p: 2.5, '&:last-child': { pb: 2.5 } }}>
+        {/* Header: Ticker + Chips */}
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+          <Box>
+            <Typography variant="h5" fontWeight="bold" lineHeight={1.2}>
+              {asset.ticker}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                mt: 0.5,
+              }}
+            >
+              {asset.name}
+            </Typography>
+          </Box>
+          <Stack direction="column" spacing={0.5} alignItems="flex-end">
+            <Chip
+              label={asset.asset_type?.short_name}
+              size="small"
+              color="primary"
+              variant="outlined"
+            />
+            <Chip
+              label={asset.asset_type?.asset_class?.name}
+              size="small"
+              variant="filled"
+              sx={{ fontSize: '0.7rem' }}
+            />
+          </Stack>
+        </Box>
 
-      <Grid container spacing={3}>
-        <DetailField label="Classe" value={asset.asset_type.asset_class.name} />
-        <DetailField label="Tipo" value={asset.asset_type.name} />
-        <DetailField label="Quantidade" value={asset.quantity.toFixed(8)} />
-        <DetailField
-          label="Valor Total"
-          value={`R$ ${asset.value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`}
-        />
-        <DetailField
-          label="Preço Atual"
-          value={`R$ ${asset.price.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`}
-        />
-        <DetailField
-          label="Preço Médio"
-          value={`R$ ${asset.average_price.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`}
-        />
-        <DetailField label="Rent. 12m" value={asset.twelve_months_return} isReturn />
-        <DetailField label="Rentabilidade Acumulada" value={asset.acc_return} isReturn />
+        <Divider sx={{ my: 1.5 }} />
 
+        {/* Valor total destaque */}
+        <Box textAlign="left" mb={1.5}>
+          <Typography variant="caption" color="text.secondary">
+            Valor Total
+          </Typography>
+          <Typography variant="h5" fontWeight="bold">
+            {formatCurrency(asset.value)}
+          </Typography>
+        </Box>
+
+        <Divider sx={{ my: 1.5 }} />
+
+        {/* Position info */}
+        <InfoRow label="Quantidade" value={asset.quantity.toLocaleString('pt-BR', { maximumFractionDigits: 8 })} />
+        <InfoRow label="Preço Atual" value={formatCurrency(asset.price)} />
+        <InfoRow label="Preço Médio" value={formatCurrency(asset.average_price)} />
+
+        <Divider sx={{ my: 1.5 }} />
+
+        {/* Returns */}
+        <InfoRow label="Rentabilidade 12m" value={twelveReturn.text} color={twelveReturn.color} />
+        <InfoRow label="Rent. Acumulada" value={accReturn.text} color={accReturn.color} />
+
+        {/* Fixed income details */}
         {asset.fixed_income && (
           <>
-            <DetailField label="Taxa" value={asset.fixed_income.fee} isReturn />
-            <DetailField label="Vencimento" value={asset.fixed_income.maturity_date} />
-            <DetailField label="Índice" value={asset.fixed_income.index?.name} />
-            <DetailField
-              label="Tipo Renda Fixa"
-              value={asset.fixed_income.fixed_income_type?.name}
-            />
+            <Divider sx={{ my: 1.5 }} />
+            {asset.fixed_income.index?.name && (
+              <InfoRow label="Índice" value={asset.fixed_income.index.name} />
+            )}
+            {asset.fixed_income.fee != null && (
+              <InfoRow label="Taxa" value={`${(asset.fixed_income.fee * 100).toFixed(2)}%`} />
+            )}
+            {asset.fixed_income.maturity_date && (
+              <InfoRow label="Vencimento" value={String(asset.fixed_income.maturity_date)} />
+            )}
+            {asset.fixed_income.fixed_income_type?.name && (
+              <InfoRow label="Tipo RF" value={asset.fixed_income.fixed_income_type.name} />
+            )}
           </>
         )}
 
+        {/* Fund details */}
         {asset.fund && (
           <>
-            <DetailField label="Categoria ANBIMA" value={asset.fund.anbima_category} />
-            <DetailField label="Código ANBIMA" value={asset.fund.anbima_code} />
+            <Divider sx={{ my: 1.5 }} />
+            {asset.fund.anbima_category && (
+              <InfoRow label="Categoria ANBIMA" value={asset.fund.anbima_category} />
+            )}
+            {asset.fund.anbima_code && (
+              <InfoRow label="Código ANBIMA" value={asset.fund.anbima_code} />
+            )}
           </>
         )}
-      </Grid>
-    </Box>
+      </CardContent>
+    </Card>
   )
 }

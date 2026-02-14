@@ -135,7 +135,7 @@ export default function PortfolioOverviewPage() {
   }
 
   return (
-    <Box>
+    <Box pt={2}>
       <Grid container direction="row" spacing={2}>
         <Grid size={{ xs: 12, md: 12, lg: 6 }}>
           <PositionPieChart positions={positions} selectedCategory={selectedCategory} />

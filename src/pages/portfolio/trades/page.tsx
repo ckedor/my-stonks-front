@@ -5,22 +5,22 @@ import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { Trade } from '@/types'
 import {
-  Box,
-  Button,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  useTheme,
+    Box,
+    Button,
+    CircularProgress,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    SelectChangeEvent,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
+    useTheme,
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
@@ -96,7 +96,7 @@ export default function PortfolioTransactionsPage() {
   }, [trades])
 
   return (
-    <Box>
+    <Box pt={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Box></Box>
         <Button variant="contained" onClick={handleNew}>

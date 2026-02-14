@@ -2,22 +2,22 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import SaveIcon from '@mui/icons-material/Save'
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Collapse,
-  IconButton,
-  Snackbar,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  useTheme,
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Collapse,
+    IconButton,
+    Snackbar,
+    Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    TextField,
+    Typography,
+    useTheme,
 } from '@mui/material'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -26,9 +26,9 @@ import { usePageTitle } from '@/contexts/PageTitleContext'
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import type {
-  AssetRebalancingEntry,
-  CategoryRebalancingEntry,
-  RebalancingResponse,
+    AssetRebalancingEntry,
+    CategoryRebalancingEntry,
+    RebalancingResponse,
 } from '@/types'
 
 // ── Column widths ────────────────────────────────────────────────────
@@ -408,7 +408,7 @@ export default function RebalancingPage() {
   }
 
   return (
-    <Box maxWidth={{ xs: '100%', lg: 1400 }} mx="auto">
+    <Box maxWidth={{ xs: '100%', lg: 1400 }} mx="auto" pt={2}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
         <Box>
           <Typography variant="body2" color="text.secondary">

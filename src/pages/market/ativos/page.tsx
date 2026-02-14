@@ -1,21 +1,21 @@
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'
 import SearchIcon from '@mui/icons-material/Search'
 import {
-  Box,
-  Card,
-  CardContent,
-  Chip,
-  FormControl,
-  Grid,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  Pagination,
-  Select,
-  TextField,
-  Tooltip,
-  Typography,
+    Box,
+    Card,
+    CardContent,
+    Chip,
+    FormControl,
+    Grid,
+    IconButton,
+    InputAdornment,
+    InputLabel,
+    MenuItem,
+    Pagination,
+    Select,
+    TextField,
+    Tooltip,
+    Typography,
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
@@ -149,7 +149,7 @@ export default function MarketAtivosPage() {
   }
 
   return (
-    <Box>
+    <Box pt={2}>
       <Box
         sx={{
           display: 'flex',

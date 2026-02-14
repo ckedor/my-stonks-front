@@ -3,20 +3,21 @@ import { Box, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceDot,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    CartesianGrid,
+    Line,
+    LineChart,
+    ReferenceDot,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from 'recharts'
 
 interface Props {
   patrimonyEvolution: PatrimonyEntry[]
   selected: string
   size: number
+  hideContributions?: boolean
   projection?: {
     rate: number
     years: number
@@ -28,6 +29,7 @@ export default function PortfolioPatrimonyChart({
   patrimonyEvolution,
   selected,
   size,
+  hideContributions = false,
   projection,
 }: Props) {
   const key = selected === 'Carteira' ? 'portfolio' : selected
@@ -39,7 +41,7 @@ export default function PortfolioPatrimonyChart({
   const aportedColor = theme.palette.secondary.main
   const growthColor = theme.palette.success.main
 
-  const showAported = key === 'portfolio'
+  const showAported = key === 'portfolio' && !hideContributions
 
   // Filtra apenas valores numéricos para a linha principal
   const filtered = patrimonyEvolution.filter((entry) =>

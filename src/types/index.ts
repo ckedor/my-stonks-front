@@ -103,15 +103,30 @@ export interface Asset {
   name: string
   ticker: string
   asset_type_id: number
+  asset_type: {
+    id: number
+    name: string
+    short_name: string
+    asset_class: {
+      id: number
+      name: string
+    }
+  }
   quantity: number
   price: number
   average_price: number
   value: number
+  acc_return: number | null
+  twelve_months_return: number | null
   fixed_income?: {
     fee: number
     maturity_date: Date
     index?: { name: string }
     fixed_income_type?: { name: string }
+  }
+  fund?: {
+    anbima_category: string
+    anbima_code: string
   }
   currency: {
     id: number

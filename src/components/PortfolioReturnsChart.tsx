@@ -6,14 +6,14 @@ import dayjs from 'dayjs'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  CartesianGrid,
-  ComposedChart,
-  Legend,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    CartesianGrid,
+    ComposedChart,
+    Legend,
+    Line,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from 'recharts'
 
 dayjs.extend(isSameOrAfter)
@@ -73,6 +73,10 @@ export default function PortfolioReturnsChart({
   useEffect(() => {
     setSelectedBenchmarks(selectedBenchmark ? [selectedBenchmark] : [])
   }, [selectedBenchmark])
+
+  useEffect(() => {
+    setSelectedAssetKeys(selectedAssets)
+  }, [selectedAssets.join(',')])
 
   const categoryColorMap = useMemo(() => {
     const map: Record<string, string> = {}
