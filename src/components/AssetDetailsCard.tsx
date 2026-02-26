@@ -1,8 +1,10 @@
-import { Asset } from '@/types'
+import { Asset, AssetAnalysis } from '@/types'
 import { Box, Card, CardContent, Chip, Divider, Stack, Typography } from '@mui/material'
 
 interface AssetDetailsCardProps {
   asset: Asset
+  embedded?: boolean
+  analysis?: AssetAnalysis | null
 }
 
 function InfoRow({
@@ -39,21 +41,22 @@ function formatReturn(value: number | null | undefined) {
   }
 }
 
-export default function AssetDetailsCard({ asset }: AssetDetailsCardProps) {
+export default function AssetDetailsCard({ asset, embedded, analysis }: AssetDetailsCardProps) {
   const accReturn = formatReturn(asset.acc_return)
   const twelveReturn = formatReturn(asset.twelve_months_return)
 
-  return (
-    <Card
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'box-shadow 0.2s',
-      }}
-    >
-      <CardContent sx={{ flex: 1, p: 2.5, '&:last-child': { pb: 2.5 } }}>
-        {/* Header: Ticker + Chips */}
+  // Derived analysis metrics
+  const cagr = analysis?.performance_metrics.cagr
+  const cdiMetrics = analysis?.performance_metrics.benchmarks_metrics?.['CDI']
+  // Pick the first non-CDI benchmark
+  const specificBenchmarkEntry = analysis
+    ? Object.entries(analysis.performance_metrics.benchmarks_metrics).find(([k]) => k !== 'CDI')
+    : undefined
+  const specificBmName = specificBenchmarkEntry?.[0]
+  const specificBmMetrics = specificBenchmarkEntry?.[1]
+
+  const content = (
+    <Box sx={{ p: 4 }}>
         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
           <Box>
             <Typography variant="h5" fontWeight="bold" lineHeight={1.2}>
@@ -115,6 +118,49 @@ export default function AssetDetailsCard({ asset }: AssetDetailsCardProps) {
         <InfoRow label="Rentabilidade 12m" value={twelveReturn.text} color={twelveReturn.color} />
         <InfoRow label="Rent. Acumulada" value={accReturn.text} color={accReturn.color} />
 
+        {/* Analysis metrics */}
+        {analysis && (
+          <>
+            <Divider sx={{ my: 1.5 }} />
+            {cagr != null && (
+              <InfoRow
+                label="CAGR"
+                value={`${cagr.toFixed(2)}%`}
+                color={cagr > 0 ? 'success.main' : cagr < 0 ? 'error.main' : 'text.primary'}
+              />
+            )}
+            {cdiMetrics && (
+              <InfoRow
+                label="% do CDI"
+                value={cdiMetrics.cagr > 0 ? `${((cagr! / cdiMetrics.cagr) * 100).toFixed(0)}%` : '—'}
+                color={cagr! > cdiMetrics.cagr ? 'success.main' : 'warning.main'}
+              />
+            )}
+            {specificBmName && specificBmMetrics && (
+              <InfoRow
+                label={`vs ${specificBmName}`}
+                value={`${specificBmMetrics.alpha >= 0 ? '+' : ''}${specificBmMetrics.alpha.toFixed(2)}%`}
+                color={specificBmMetrics.alpha >= 0 ? 'success.main' : 'error.main'}
+              />
+            )}
+            <Divider sx={{ my: 1.5 }} />
+            <InfoRow
+              label="Vol. Anual"
+              value={`${(analysis.risk_metrics.annualized_vol * 100).toFixed(2)}%`}
+            />
+            <InfoRow
+              label="Sharpe"
+              value={analysis.risk_metrics.sharpe_ratio.toFixed(3)}
+              color={analysis.risk_metrics.sharpe_ratio > 0 ? 'success.main' : 'error.main'}
+            />
+            <InfoRow
+              label="Max Drawdown"
+              value={`${(analysis.risk_metrics.drawdown.stats.max_drawdown * 100).toFixed(2)}%`}
+              color="error.main"
+            />
+          </>
+        )}
+
         {/* Fixed income details */}
         {asset.fixed_income && (
           <>
@@ -146,6 +192,22 @@ export default function AssetDetailsCard({ asset }: AssetDetailsCardProps) {
             )}
           </>
         )}
+    </Box>
+  )
+
+  if (embedded) return content
+
+  return (
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'box-shadow 0.2s',
+      }}
+    >
+      <CardContent sx={{ flex: 1, p: 0, '&:last-child': { pb: 0 } }}>
+        {content}
       </CardContent>
     </Card>
   )

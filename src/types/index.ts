@@ -167,3 +167,52 @@ export interface RebalancingResponse {
   total_value: number
   categories: CategoryRebalancingEntry[]
 }
+
+// Asset Analysis types
+export interface BenchmarkMetrics {
+  cagr: number
+  alpha: number
+  beta: number
+  correlation: number
+}
+
+export interface DrawdownEntry {
+  date: string
+  drawdown: number
+}
+
+export interface DrawdownStats {
+  max_drawdown: number
+  max_drawdown_date: string
+  peak_date_before_max_dd: string
+  recovery_date: string | null
+  recovery_days: number | null
+  max_drawdown_duration_days: number | null
+}
+
+export interface RollingCagrEntry {
+  date: string
+  value: number
+}
+
+export interface AssetAnalysis {
+  start_date: string
+  performance_metrics: {
+    cagr: number
+    benchmarks_metrics: Record<string, BenchmarkMetrics>
+  }
+  risk_metrics: {
+    annualized_vol: number
+    sharpe_ratio: number
+    drawdown: {
+      series: DrawdownEntry[]
+      stats: DrawdownStats
+    }
+    semideviation: number
+    skewness: number
+    kurtosis: number
+    var_95: number
+    cvar_95: number
+  }
+  rolling_cagr: RollingCagrEntry[]
+}

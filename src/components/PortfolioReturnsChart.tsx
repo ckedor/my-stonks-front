@@ -87,11 +87,38 @@ export default function PortfolioReturnsChart({
   }, [userCategories])
 
   const allDates = useMemo(() => {
-    const all = Object.values(categoryReturns)
-      .flat()
-      .map((d) => d.date)
-    return Array.from(new Set(all)).sort()
-  }, [categoryReturns])
+    const dateSet = new Set<string>()
+    // Include dates from all data sources
+    for (const cat of selectedCategories) {
+      (categoryReturns[cat] || []).forEach((d) => dateSet.add(d.date))
+    }
+    for (const asset of selectedAssetKeys) {
+      (assetReturns[asset] || []).forEach((d) => dateSet.add(d.date))
+    }
+    for (const bm of selectedBenchmarks) {
+      (benchmarks[bm] || []).forEach((d) => dateSet.add(d.date))
+    }
+    return Array.from(dateSet).sort()
+  }, [categoryReturns, assetReturns, benchmarks, selectedCategories, selectedAssetKeys, selectedBenchmarks])
+
+  // Find the latest "first date" among all selected series so all curves start at 0
+  const latestSeriesStart = useMemo(() => {
+    const firstDates: string[] = []
+    for (const cat of selectedCategories) {
+      const series = categoryReturns[cat]
+      if (series?.length) firstDates.push([...series].sort((a, b) => a.date.localeCompare(b.date))[0].date)
+    }
+    for (const asset of selectedAssetKeys) {
+      const series = assetReturns[asset]
+      if (series?.length) firstDates.push([...series].sort((a, b) => a.date.localeCompare(b.date))[0].date)
+    }
+    for (const bm of selectedBenchmarks) {
+      const series = benchmarks[bm]
+      if (series?.length) firstDates.push([...series].sort((a, b) => a.date.localeCompare(b.date))[0].date)
+    }
+    // Latest first date = all curves will have data from this point
+    return firstDates.length ? firstDates.sort().at(-1)! : null
+  }, [categoryReturns, assetReturns, benchmarks, selectedCategories, selectedAssetKeys, selectedBenchmarks])
 
   const filteredDates = useMemo(() => {
     const today = dayjs()
@@ -117,10 +144,10 @@ export default function PortfolioReturnsChart({
         break
       case 'max':
       default:
-        from = dayjs('1900-01-01')
+        from = latestSeriesStart ? dayjs(latestSeriesStart) : dayjs('1900-01-01')
     }
     return allDates.filter((date) => dayjs(date).isSameOrAfter(from))
-  }, [allDates, range])
+  }, [allDates, range, latestSeriesStart])
 
   const normalizeReturns = (series: { date: string; value: number }[], dates: string[]) => {
     if (!dates.length) return []
