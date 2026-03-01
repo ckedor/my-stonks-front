@@ -7,6 +7,7 @@ import AdminBrokersPage from "./pages/admin/brokers/page";
 import AdminEventsPage from "./pages/admin/events/page";
 import AdminLayout from "./pages/admin/layout";
 import AdminUsersPage from "./pages/admin/users/page";
+import FinancesPage from "./pages/finances";
 import LoginPage from "./pages/login";
 import MarketAtivosPage from "./pages/market/ativos/page";
 import PortfolioAssetsPage from "./pages/portfolio/asset";
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
       { path: "portfolio/rebalancing", element: <RebalancingPage /> },
       { path: "portfolio/user-configurations", element: <UserConfigurationPage /> },
       { path: "market/assets", element: <MarketAtivosPage /> },
+      { path: "finances", element: <FinancesPage /> },
     ],
   },
   {

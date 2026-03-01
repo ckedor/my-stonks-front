@@ -11,7 +11,7 @@ import { usePortfolio } from '@/contexts/PortfolioContext'
 import { useTradeForm } from '@/contexts/TradeFormContext'
 import api from '@/lib/api'
 
-type Section = 'carteira' | 'mercado'
+type Section = 'carteira' | 'mercado' | 'financas'
 
 interface NavItem {
   text: string
@@ -37,6 +37,10 @@ const carteiraNav: NavItem[] = [
 
 const mercadoNav: NavItem[] = [
   { text: 'Ativos', path: '/market/assets' },
+]
+
+const financasNav: NavItem[] = [
+  { text: 'Finanças Pessoais', path: '/finances' },
 ]
 
 interface SubNavigationProps {
@@ -77,7 +81,7 @@ export default function SubNavigation({ section }: SubNavigationProps) {
     }
   }
 
-  const navItems = section === 'carteira' ? carteiraNav : mercadoNav
+  const navItems = section === 'carteira' ? carteiraNav : section === 'financas' ? financasNav : mercadoNav
 
   const quickActions: QuickAction[] =
     section === 'carteira'

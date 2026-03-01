@@ -28,10 +28,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { ThemeToggleButton } from '@/components/ui/ThemeToggleButton'
 
-export type Section = 'carteira' | 'mercado'
+export type Section = 'carteira' | 'mercado' | 'financas'
 
 export function getCurrentSection(pathname: string): Section {
   if (pathname.startsWith('/market')) return 'mercado'
+  if (pathname.startsWith('/finances')) return 'financas'
   return 'carteira'
 }
 
@@ -70,6 +71,8 @@ export default function MainTopbar() {
   const handleSectionClick = (section: Section) => {
     if (section === 'carteira') {
       navigate('/portfolio/overview')
+    } else if (section === 'financas') {
+      navigate('/finances')
     } else {
       navigate('/market/assets')
     }
@@ -120,6 +123,19 @@ export default function MainTopbar() {
               }}
             >
               Mercado
+            </Button>
+            <Button
+              onClick={() => handleSectionClick('financas')}
+              sx={{
+                textTransform: 'none',
+                fontWeight: currentSection === 'financas' ? 'bold' : 'normal',
+                color: 'topbar.text',
+                borderBottom: currentSection === 'financas' ? 2 : 0,
+                borderColor: 'topbar.text',
+                borderRadius: 0,
+              }}
+            >
+              Finanças
             </Button>
           </Box>
 
