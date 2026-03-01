@@ -32,7 +32,7 @@ export type Section = 'carteira' | 'mercado' | 'financas'
 
 export function getCurrentSection(pathname: string): Section {
   if (pathname.startsWith('/market')) return 'mercado'
-  if (pathname.startsWith('/finances')) return 'financas'
+  if (pathname.startsWith('/finances') || pathname.startsWith('/spend')) return 'financas'
   return 'carteira'
 }
 

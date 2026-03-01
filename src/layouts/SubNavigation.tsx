@@ -41,6 +41,7 @@ const mercadoNav: NavItem[] = [
 
 const financasNav: NavItem[] = [
   { text: 'Finanças Pessoais', path: '/finances' },
+  { text: 'Gasto Rápido', path: '/spend' },
 ]
 
 interface SubNavigationProps {

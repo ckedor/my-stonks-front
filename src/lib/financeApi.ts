@@ -6,6 +6,7 @@ export interface FinanceSubcategory {
   id: number
   name: string
   category_id: number
+  goal_amount?: number | null
 }
 
 export interface FinanceCategory {
@@ -18,6 +19,7 @@ export interface SubcategoryWithCategory {
   id: number
   name: string
   category_id: number
+  goal_amount?: number | null
   category: { id: number; name: string }
 }
 
@@ -59,6 +61,20 @@ export interface MonthlyBreakdown {
   by_subcategory: SubcategoryExpense[]
 }
 
+export interface SubcategoryGoalProgress {
+  subcategory_id: number
+  subcategory_name: string
+  category_id: number
+  category_name: string
+  goal_amount: number
+  spent_amount: number
+  remaining_amount: number
+  progress_percent: number
+  per_day_available: number
+  days_remaining: number
+  is_over_goal: boolean
+}
+
 // ── API calls ──────────────────────────────────────────────────
 
 // Categories
@@ -83,6 +99,9 @@ export const updateSubcategory = (id: number, name: string, category_id?: number
 
 export const deleteSubcategory = (id: number) =>
   api.delete(`/finances/subcategories/${id}`)
+
+export const updateSubcategoryGoal = (id: number, goal_amount: number | null) =>
+  api.put<FinanceSubcategory>(`/finances/subcategories/${id}/goal`, { goal_amount }).then((r) => r.data)
 
 // Expenses
 export const fetchExpenses = (year: number, month: number) =>
@@ -116,3 +135,6 @@ export const fetchYearlySummary = (year: number) =>
 
 export const fetchMonthlyBreakdown = (year: number, month: number) =>
   api.get<MonthlyBreakdown>('/finances/summary/monthly', { params: { year, month } }).then((r) => r.data)
+
+export const fetchMonthlyGoals = (year: number, month: number) =>
+  api.get<SubcategoryGoalProgress[]>('/finances/summary/monthly-goals', { params: { year, month } }).then((r) => r.data)

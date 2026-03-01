@@ -20,6 +20,7 @@ import TaxIncomePage from "./pages/portfolio/tax-income/page";
 import PortfolioTransactionsPage from "./pages/portfolio/trades/page";
 import UserConfigurationPage from "./pages/portfolio/user-configurations/page";
 import PortfolioPatrimonyEvolution from "./pages/portfolio/wealth/page";
+import SpendPage from "./pages/spend";
 import { ThemeRegistry } from "./theme";
 
 const router = createBrowserRouter([
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
       { path: "portfolio/user-configurations", element: <UserConfigurationPage /> },
       { path: "market/assets", element: <MarketAtivosPage /> },
       { path: "finances", element: <FinancesPage /> },
+      { path: "spend", element: <SpendPage /> },
     ],
   },
   {

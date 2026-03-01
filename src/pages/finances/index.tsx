@@ -11,6 +11,7 @@ import {
     Chip,
     CircularProgress,
     IconButton,
+    LinearProgress,
     ListSubheader,
     MenuItem,
     Paper,
@@ -55,14 +56,17 @@ import {
     fetchExpenses,
     fetchIncomes,
     fetchMonthlyBreakdown,
+    fetchMonthlyGoals,
     fetchYearlySummary,
     updateExpense,
     updateIncome,
+    updateSubcategoryGoal,
     type FinanceCategory,
     type FinanceExpense,
     type FinanceIncome,
     type MonthlyBreakdown,
     type MonthlySummary,
+    type SubcategoryGoalProgress,
 } from '@/lib/financeApi'
 import CategoryManagerDialog from './CategoryManagerDialog'
 
@@ -84,10 +88,12 @@ export default function FinancesPage() {
   const [incomes, setIncomes] = useState<FinanceIncome[]>([])
   const [yearlySummary, setYearlySummary] = useState<MonthlySummary[]>([])
   const [breakdown, setBreakdown] = useState<MonthlyBreakdown | null>(null)
+  const [goals, setGoals] = useState<SubcategoryGoalProgress[]>([])
 
   const [loadingYear, setLoadingYear] = useState(true)
   const [loadingMonth, setLoadingMonth] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [creatingGoal, setCreatingGoal] = useState(false)
 
   // Expense form state
   const [expAmount, setExpAmount] = useState('')
@@ -119,7 +125,12 @@ export default function FinancesPage() {
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   // Main page tab
-  const [mainTab, setMainTab] = useState(0)
+  const [mainTab, setMainTab] = useState(1)
+
+  // Goal form state
+  const [goalCategoryId, setGoalCategoryId] = useState<number | ''>('')
+  const [goalSubcategoryId, setGoalSubcategoryId] = useState<number | ''>('')
+  const [goalAmount, setGoalAmount] = useState('')
 
   // Pie chart tab
   const [pieTab, setPieTab] = useState(0)
@@ -151,14 +162,16 @@ export default function FinancesPage() {
   const loadMonthly = useCallback(async () => {
     setLoadingMonth(true)
     try {
-      const [exp, inc, bd] = await Promise.all([
+      const [exp, inc, bd, gl] = await Promise.all([
         fetchExpenses(year, month),
         fetchIncomes(year, month),
         fetchMonthlyBreakdown(year, month),
+        fetchMonthlyGoals(year, month),
       ])
       setExpenses(exp)
       setIncomes(inc)
       setBreakdown(bd)
+      setGoals(gl)
     } catch { setSnack({ msg: 'Erro ao buscar dados do mês', severity: 'error' }) }
     finally { setLoadingMonth(false) }
   }, [year, month])
@@ -301,6 +314,45 @@ export default function FinancesPage() {
 
   const pieSubData = useMemo(() =>
     (breakdown?.by_subcategory ?? []).map((s) => ({ name: s.subcategory, value: s.total })), [breakdown])
+
+  const existingGoals = useMemo(
+    () => goals.filter((g) => g.goal_amount > 0),
+    [goals],
+  )
+
+  const goalSubcategoryIds = useMemo(
+    () => new Set(existingGoals.map((g) => g.subcategory_id)),
+    [existingGoals],
+  )
+
+  const availableGoalSubcategories = useMemo(() => {
+    if (!goalCategoryId) return []
+    const category = categories.find((c) => c.id === goalCategoryId)
+    if (!category) return []
+    return category.subcategories.filter((s) => !goalSubcategoryIds.has(s.id))
+  }, [categories, goalCategoryId, goalSubcategoryIds])
+
+  const handleCreateGoal = async () => {
+    const amount = Number(goalAmount)
+    if (!goalSubcategoryId || !Number.isFinite(amount) || amount <= 0) {
+      setSnack({ msg: 'Preencha categoria, subcategoria e valor válido', severity: 'error' })
+      return
+    }
+
+    setCreatingGoal(true)
+    try {
+      await updateSubcategoryGoal(goalSubcategoryId, amount)
+      setGoalCategoryId('')
+      setGoalSubcategoryId('')
+      setGoalAmount('')
+      await Promise.all([loadCategories(), loadMonthly()])
+      setSnack({ msg: 'Meta criada com sucesso', severity: 'success' })
+    } catch {
+      setSnack({ msg: 'Erro ao criar meta', severity: 'error' })
+    } finally {
+      setCreatingGoal(false)
+    }
+  }
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
@@ -652,53 +704,144 @@ export default function FinancesPage() {
             </Paper>
           </Box>
 
-          {/* RIGHT COLUMN: pie charts */}
+          {/* RIGHT COLUMN: pie charts and goals */}
           <Box flex={1} minWidth={300}>
             <Paper sx={{ p: 2 }}>
               <Tabs value={pieTab} onChange={(_, v) => setPieTab(v)} variant="fullWidth" sx={{ mb: 1 }}>
                 <Tab label="Por categoria" />
                 <Tab label="Por subcategoria" />
+                <Tab label="Metas" />
               </Tabs>
 
-              {(pieTab === 0 ? pieCatData : pieSubData).length === 0 ? (
-                <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
-                  Sem dados
-                </Typography>
-              ) : (
-                <ResponsiveContainer width="100%" height={320}>
-                  <PieChart>
-                    <Pie
-                      data={pieTab === 0 ? pieCatData : pieSubData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={110}
-                      label={({ name, percent }: Record<string, unknown>) => `${name} ${(Number(percent) * 100).toFixed(0)}%`}
-                      labelLine={true}
-                    >
-                      {(pieTab === 0 ? pieCatData : pieSubData).map((_, i) => (
-                        <Cell key={i} fill={pieColors[i % pieColors.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              {pieTab !== 2 && (
+                <>
+                  {(pieTab === 0 ? pieCatData : pieSubData).length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+                      Sem dados
+                    </Typography>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={320}>
+                      <PieChart>
+                        <Pie
+                          data={pieTab === 0 ? pieCatData : pieSubData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={110}
+                          label={({ name, percent }: Record<string, unknown>) => `${name} ${(Number(percent) * 100).toFixed(0)}%`}
+                          labelLine={true}
+                        >
+                          {(pieTab === 0 ? pieCatData : pieSubData).map((_, i) => (
+                            <Cell key={i} fill={pieColors[i % pieColors.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+
+                  {/* Category breakdown list */}
+                  <Stack spacing={0.5} mt={1}>
+                    {(pieTab === 0 ? (breakdown?.by_category ?? []).map((c) => ({ label: c.category, total: c.total })) : (breakdown?.by_subcategory ?? []).map((s) => ({ label: s.subcategory, total: s.total }))).map((item, i) => (
+                      <Box key={i} display="flex" justifyContent="space-between" px={1}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: pieColors[i % pieColors.length] }} />
+                          <Typography variant="body2">{item.label}</Typography>
+                        </Box>
+                        <Typography variant="body2" fontWeight={600}>{fmt(item.total)}</Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </>
               )}
 
-              {/* Category breakdown list */}
-              <Stack spacing={0.5} mt={1}>
-                {(pieTab === 0 ? (breakdown?.by_category ?? []).map((c) => ({ label: c.category, total: c.total })) : (breakdown?.by_subcategory ?? []).map((s) => ({ label: s.subcategory, total: s.total }))).map((item, i) => (
-                  <Box key={i} display="flex" justifyContent="space-between" px={1}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: pieColors[i % pieColors.length] }} />
-                      <Typography variant="body2">{item.label}</Typography>
-                    </Box>
-                    <Typography variant="body2" fontWeight={600}>{fmt(item.total)}</Typography>
-                  </Box>
-                ))}
-              </Stack>
+              {pieTab === 2 && (
+                <Stack spacing={1.25}>
+                  <Paper variant="outlined" sx={{ p: 1.25 }}>
+                    <Typography variant="subtitle2" mb={1}>Nova meta</Typography>
+                    <Stack spacing={1}>
+                      <Select
+                        size="small"
+                        value={goalCategoryId}
+                        displayEmpty
+                        onChange={(e) => {
+                          setGoalCategoryId(e.target.value as number)
+                          setGoalSubcategoryId('')
+                        }}
+                      >
+                        <MenuItem value="">Categoria</MenuItem>
+                        {categories.map((c) => (
+                          <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                        ))}
+                      </Select>
+
+                      <Select
+                        size="small"
+                        value={goalSubcategoryId}
+                        displayEmpty
+                        onChange={(e) => setGoalSubcategoryId(e.target.value as number)}
+                        disabled={!goalCategoryId}
+                      >
+                        <MenuItem value="">Subcategoria</MenuItem>
+                        {availableGoalSubcategories.map((s) => (
+                          <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                        ))}
+                      </Select>
+
+                      <TextField
+                        size="small"
+                        label="Meta (R$)"
+                        type="number"
+                        value={goalAmount}
+                        onChange={(e) => setGoalAmount(e.target.value)}
+                      />
+
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={handleCreateGoal}
+                        disabled={creatingGoal || !goalCategoryId || !goalSubcategoryId || !goalAmount}
+                      >
+                        {creatingGoal ? 'Criando...' : 'Criar meta'}
+                      </Button>
+                    </Stack>
+                  </Paper>
+
+                  {existingGoals.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">Sem metas cadastradas.</Typography>
+                  ) : (
+                    existingGoals.map((goal) => (
+                      <Paper key={goal.subcategory_id} variant="outlined" sx={{ p: 1.25 }}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                          <Typography variant="subtitle2">{goal.subcategory_name}</Typography>
+                          <Typography variant="caption" color="text.secondary">{goal.category_name}</Typography>
+                        </Box>
+
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.min(goal.progress_percent, 100)}
+                          color={goal.is_over_goal ? 'error' : 'primary'}
+                          sx={{ height: 8, borderRadius: 4, mb: 0.75 }}
+                        />
+                        <Box display="flex" justifyContent="space-between" mb={0.5}>
+                          <Typography variant="caption" color={goal.is_over_goal ? 'error.main' : 'text.secondary'}>
+                            {goal.progress_percent.toFixed(1)}% usado ({fmt(goal.spent_amount)} / {fmt(goal.goal_amount)})
+                          </Typography>
+                          <Typography variant="caption" color={goal.is_over_goal ? 'error.main' : 'text.secondary'}>
+                            {goal.is_over_goal ? `Passou ${fmt(Math.abs(goal.remaining_amount))}` : `Restam ${fmt(goal.remaining_amount)}`}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" color={goal.per_day_available < 0 ? 'error.main' : 'text.secondary'}>
+                          Pode gastar por dia: {fmt(goal.per_day_available)}
+                          {goal.days_remaining > 0 ? ` (${goal.days_remaining} dias)` : ''}
+                        </Typography>
+                      </Paper>
+                    ))
+                  )}
+                </Stack>
+              )}
             </Paper>
           </Box>
         </Box>
