@@ -118,6 +118,9 @@ export default function FinancesPage() {
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
+  // Main page tab
+  const [mainTab, setMainTab] = useState(0)
+
   // Pie chart tab
   const [pieTab, setPieTab] = useState(0)
 
@@ -284,6 +287,13 @@ export default function FinancesPage() {
       Gastos: m.total_expense,
     })), [yearlySummary])
 
+  const yearTotalIncome = useMemo(() => yearlySummary.reduce((s, m) => s + m.total_income, 0), [yearlySummary])
+  const yearTotalExpense = useMemo(() => yearlySummary.reduce((s, m) => s + m.total_expense, 0), [yearlySummary])
+  const yearBalance = yearTotalIncome - yearTotalExpense
+
+  const yearAvgIncome = yearlySummary.length ? yearTotalIncome / yearlySummary.filter(m => m.total_income > 0).length || 0 : 0
+  const yearAvgExpense = yearlySummary.length ? yearTotalExpense / yearlySummary.filter(m => m.total_expense > 0).length || 0 : 0
+
   const pieColors = theme.palette.chart.colors
 
   const pieCatData = useMemo(() =>
@@ -307,53 +317,118 @@ export default function FinancesPage() {
   // ── Render ────────────────────────────────────────────────
   return (
     <Box py={2}>
-      {/* ═══ YEAR CHART ═══ */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-          <Typography variant="h6" fontWeight="bold">Ganhos vs Gastos — {year}</Typography>
+      {/* ═══ TOP-LEVEL TABS ═══ */}
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+        <Tabs value={mainTab} onChange={(_, v) => setMainTab(v)}>
+          <Tab label="Ganhos vs Gastos no Ano" />
+          <Tab label="Detalhe do Mês" />
+        </Tabs>
+        <Box display="flex" alignItems="center" gap={1}>
+          {mainTab === 1 && (
+            <Select size="small" value={month} onChange={(e) => setMonth(Number(e.target.value))} sx={{ minWidth: 100 }}>
+              {MONTHS.map((m, i) => <MenuItem key={i} value={i + 1}>{m}</MenuItem>)}
+            </Select>
+          )}
           <Select size="small" value={year} onChange={(e) => setYear(Number(e.target.value))} sx={{ minWidth: 100 }}>
             {Array.from({ length: 6 }, (_, i) => now.year() - i).map((y) => (
               <MenuItem key={y} value={y}>{y}</MenuItem>
             ))}
           </Select>
+          <Chip icon={<CategoryIcon />} label="Categorias" variant="outlined" size="small" onClick={() => setCatDialogOpen(true)} sx={{ cursor: 'pointer' }} />
         </Box>
-
-        {loadingYear ? (
-          <Box display="flex" justifyContent="center" py={6}><CircularProgress /></Box>
-        ) : (
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={barData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.chart.grid} />
-              <XAxis dataKey="name" tick={{ fill: theme.palette.chart.label, fontSize: 12 }} />
-              <YAxis tick={{ fill: theme.palette.chart.label, fontSize: 12 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip
-                contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
-                formatter={(value: number) => fmt(value)}
-              />
-              <Legend />
-              <Bar dataKey="Ganhos" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Gastos" fill={theme.palette.error.main} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </Paper>
-
-      {/* ═══ MONTH SECTION ═══ */}
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography variant="h6" fontWeight="bold">Mês</Typography>
-          <Select size="small" value={month} onChange={(e) => setMonth(Number(e.target.value))} sx={{ minWidth: 100 }}>
-            {MONTHS.map((m, i) => <MenuItem key={i} value={i + 1}>{m}</MenuItem>)}
-          </Select>
-          <Select size="small" value={year} onChange={(e) => setYear(Number(e.target.value))} sx={{ minWidth: 90 }}>
-            {Array.from({ length: 6 }, (_, i) => now.year() - i).map((y) => (
-              <MenuItem key={y} value={y}>{y}</MenuItem>
-            ))}
-          </Select>
-        </Box>
-        <Chip icon={<CategoryIcon />} label="Categorias" variant="outlined" size="small" onClick={() => setCatDialogOpen(true)} sx={{ cursor: 'pointer' }} />
       </Box>
 
+      {/* ═══ TAB 0 — GANHOS VS GASTOS NO ANO ═══ */}
+      {mainTab === 0 && (
+        <>
+          {/* Yearly summary cards */}
+          <Box display="flex" gap={2} mb={3}>
+            <Paper sx={{ flex: 1, p: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">Total Ganhos</Typography>
+              <Typography variant="h5" color="success.main" fontWeight="bold">{fmt(yearTotalIncome)}</Typography>
+              <Typography variant="caption" color="text.secondary">Média {fmt(yearAvgIncome)}/mês</Typography>
+            </Paper>
+            <Paper sx={{ flex: 1, p: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">Total Gastos</Typography>
+              <Typography variant="h5" color="error.main" fontWeight="bold">{fmt(yearTotalExpense)}</Typography>
+              <Typography variant="caption" color="text.secondary">Média {fmt(yearAvgExpense)}/mês</Typography>
+            </Paper>
+            <Paper sx={{ flex: 1, p: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">Saldo Anual</Typography>
+              <Typography variant="h5" fontWeight="bold" color={yearBalance >= 0 ? 'success.main' : 'error.main'}>
+                {fmt(yearBalance)}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {yearTotalIncome > 0 ? `${((yearTotalExpense / yearTotalIncome) * 100).toFixed(0)}% comprometido` : '—'}
+              </Typography>
+            </Paper>
+          </Box>
+
+          {/* Year bar chart */}
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" fontWeight="bold" mb={1}>Ganhos vs Gastos — {year}</Typography>
+            {loadingYear ? (
+              <Box display="flex" justifyContent="center" py={6}><CircularProgress /></Box>
+            ) : (
+              <ResponsiveContainer width="100%" height={340}>
+                <BarChart data={barData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.chart.grid} />
+                  <XAxis dataKey="name" tick={{ fill: theme.palette.chart.label, fontSize: 12 }} />
+                  <YAxis tick={{ fill: theme.palette.chart.label, fontSize: 12 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
+                    formatter={(value: number) => fmt(value)}
+                  />
+                  <Legend />
+                  <Bar dataKey="Ganhos" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Gastos" fill={theme.palette.error.main} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </Paper>
+
+          {/* Monthly summary table */}
+          <Paper sx={{ p: 2, mt: 3 }}>
+            <Typography variant="h6" fontWeight="bold" mb={1}>Resumo Mensal</Typography>
+            <TableContainer sx={{ maxHeight: 400 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Mês</TableCell>
+                    <TableCell align="right">Ganhos</TableCell>
+                    <TableCell align="right">Gastos</TableCell>
+                    <TableCell align="right">Saldo</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {yearlySummary.map((m) => {
+                    const balance = m.total_income - m.total_expense
+                    return (
+                      <TableRow
+                        key={m.month}
+                        hover
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => { setMonth(m.month); setMainTab(1) }}
+                      >
+                        <TableCell>{MONTHS[m.month - 1]}</TableCell>
+                        <TableCell align="right" sx={{ color: 'success.main', fontWeight: 500 }}>{fmt(m.total_income)}</TableCell>
+                        <TableCell align="right" sx={{ color: 'error.main', fontWeight: 500 }}>{fmt(m.total_expense)}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, color: balance >= 0 ? 'success.main' : 'error.main' }}>
+                          {fmt(balance)}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </>
+      )}
+
+      {/* ═══ TAB 1 — DETALHE DO MÊS ═══ */}
+      {mainTab === 1 && (
+        <>
       {loadingMonth ? (
         <Box display="flex" justifyContent="center" py={6}><CircularProgress /></Box>
       ) : (
@@ -627,6 +702,8 @@ export default function FinancesPage() {
             </Paper>
           </Box>
         </Box>
+      )}
+        </>
       )}
 
       <CategoryManagerDialog
