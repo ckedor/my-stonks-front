@@ -1,6 +1,7 @@
 import GlobalTradeForm from '@/components/GlobalTradeForm'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageTitleProvider } from '@/contexts/PageTitleContext'
+import { PortfolioAnalysisProvider } from '@/contexts/PortfolioAnalysisContext'
 import { PortfolioProvider } from '@/contexts/PortfolioContext'
 import { PortfolioPositionsProvider } from '@/contexts/PortfolioPositionsContext'
 import { PortfolioReturnsProvider } from '@/contexts/PortfolioReturnsContext'
@@ -26,6 +27,7 @@ export default function MainLayout() {
       <PortfolioProvider>
         <PortfolioPositionsProvider>
         <PortfolioReturnsProvider>
+          <PortfolioAnalysisProvider>
           <TradeFormProvider>
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
               <MainTopbar />
@@ -36,6 +38,7 @@ export default function MainLayout() {
             </Box>
             <GlobalTradeForm />
           </TradeFormProvider>
+          </PortfolioAnalysisProvider>
         </PortfolioReturnsProvider>
         </PortfolioPositionsProvider>
       </PortfolioProvider>

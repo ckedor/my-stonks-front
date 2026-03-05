@@ -1,6 +1,7 @@
 import { useAuth } from '../..//contexts/AuthContext'
 import { PageTitleProvider } from '../..//contexts/PageTitleContext'
 import { PortfolioProvider } from '../..//contexts/PortfolioContext'
+import { PortfolioAnalysisProvider } from '../../contexts/PortfolioAnalysisContext'
 import { PortfolioReturnsProvider } from '../../contexts/PortfolioReturnsContext'
 
 import { Box, useMediaQuery } from '@mui/material'
@@ -31,6 +32,7 @@ export default function PortfolioLayout() {
     <PageTitleProvider>
       <PortfolioProvider>
         <PortfolioReturnsProvider>
+          <PortfolioAnalysisProvider>
           <Box sx={{ display: 'flex'}}>
             <Sidebar
               variant={variant}
@@ -65,6 +67,7 @@ export default function PortfolioLayout() {
               </Box>
             </Box>
           </Box>
+          </PortfolioAnalysisProvider>
         </PortfolioReturnsProvider>
       </PortfolioProvider>
     </PageTitleProvider>

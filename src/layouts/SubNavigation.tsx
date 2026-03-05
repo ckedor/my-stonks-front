@@ -29,6 +29,7 @@ const carteiraNav: NavItem[] = [
   { text: 'Ativos', path: '/portfolio/asset' },
   { text: 'Rentabilidade', path: '/portfolio/returns' },
   { text: 'Patrimônio', path: '/portfolio/wealth' },
+  { text: 'Risco', path: '/portfolio/analysis' },
   { text: 'Rebalanceamento', path: '/portfolio/rebalancing' },
   { text: 'Trades', path: '/portfolio/trades' },
   { text: 'Proventos', path: '/portfolio/dividends' },

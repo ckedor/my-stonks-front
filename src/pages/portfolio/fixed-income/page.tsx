@@ -15,6 +15,7 @@ import {
   Grid,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   SelectChangeEvent,
   Snackbar,
@@ -198,16 +199,18 @@ export default function FixedIncomePage() {
 
       <Grid container direction="row" mt={2}>
         <Grid size={{ xs: 24 }}>
-          <Trades
-            assetTypes={[
-              ASSET_TYPES.CDB,
-              ASSET_TYPES.DEB,
-              ASSET_TYPES.CRI,
-              ASSET_TYPES.CRA,
-              ASSET_TYPES.TREASURY,
-            ]}
-            currencyId={1}
-          />
+          <Paper variant="outlined">
+            <Trades
+              assetTypes={[
+                ASSET_TYPES.CDB,
+                ASSET_TYPES.DEB,
+                ASSET_TYPES.CRI,
+                ASSET_TYPES.CRA,
+                ASSET_TYPES.TREASURY,
+              ]}
+              currencyId={1}
+            />
+          </Paper>
         </Grid>
       </Grid>
 

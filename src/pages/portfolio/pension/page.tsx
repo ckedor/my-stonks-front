@@ -7,7 +7,7 @@ import { usePageTitle } from '@/contexts/PageTitleContext'
 import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { PatrimonyEntry, PortfolioPositionEntry } from '@/types'
-import { Alert, Box, CircularProgress, Grid, Snackbar, Tab, Tabs, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Grid, Paper, Snackbar, Tab, Tabs, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import PensionPieChart from './PensionPieChart'
 import PensionTable from './PensionTable'
@@ -109,7 +109,9 @@ export default function PensionPage() {
 
       <Grid container direction="row" mt={2}>
         <Grid size={{ xs: 24 }}>
-          <Trades assetTypes={[ASSET_TYPES.PREV]} currencyId={1} />
+          <Paper variant="outlined">
+            <Trades assetTypes={[ASSET_TYPES.PREV]} currencyId={1} />
+          </Paper>
         </Grid>
       </Grid>
 

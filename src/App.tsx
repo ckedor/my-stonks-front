@@ -10,6 +10,7 @@ import AdminUsersPage from "./pages/admin/users/page";
 import FinancesPage from "./pages/finances";
 import LoginPage from "./pages/login";
 import MarketAtivosPage from "./pages/market/ativos/page";
+import PortfolioRiskPage from "./pages/portfolio/risk/page";
 import PortfolioAssetsPage from "./pages/portfolio/asset";
 import PortfolioAssetPage from "./pages/portfolio/asset/[id]/page";
 import PortfolioDividendsPage from "./pages/portfolio/dividends/page";
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { path: "portfolio/asset/:id", element: <PortfolioAssetPage /> },
       { path: "portfolio/dividends", element: <PortfolioDividendsPage /> },
       { path: "portfolio/returns", element: <PortfolioReturnsPage /> },
+      { path: "portfolio/analysis", element: <PortfolioRiskPage /> },
       { path: "portfolio/tax-income", element: <TaxIncomePage /> },
       { path: "portfolio/trades", element: <PortfolioTransactionsPage /> },
       { path: "portfolio/wealth", element: <PortfolioPatrimonyEvolution /> },

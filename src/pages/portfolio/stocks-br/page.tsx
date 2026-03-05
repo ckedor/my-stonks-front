@@ -15,6 +15,7 @@ import {
   Grid,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   SelectChangeEvent,
   Snackbar,
@@ -176,10 +177,12 @@ export default function StocksBrPage() {
 
       <Grid container direction="row" mt={2}>
         <Grid size={{ xs: 24 }}>
-          <Trades
-            assetTypes={[ASSET_TYPES.ETF, ASSET_TYPES.STOCK, ASSET_TYPES.BDR]}
-            currencyId={1}
-          />
+          <Paper variant="outlined">
+            <Trades
+              assetTypes={[ASSET_TYPES.ETF, ASSET_TYPES.STOCK, ASSET_TYPES.BDR]}
+              currencyId={1}
+            />
+          </Paper>
         </Grid>
       </Grid>
 

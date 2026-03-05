@@ -2,17 +2,16 @@ import { usePortfolio } from '@/contexts/PortfolioContext'
 import api from '@/lib/api'
 import { Trade } from '@/types'
 import {
-    Box,
-    Button,
-    CircularProgress,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography,
+  Box,
+  Button,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
@@ -68,7 +67,7 @@ export default function Trades({ assetId, assetTypes, currencyId }: TradesProps)
   }
 
   return (
-    <Paper variant="outlined" sx={{ p: 2, height: 500, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ p: 2, height: 500, display: 'flex', flexDirection: 'column' }}>
       <Box mb={2} display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="h6">Compras / Vendas</Typography>
         <Button variant="contained" onClick={handleNew}>
@@ -205,6 +204,6 @@ export default function Trades({ assetId, assetTypes, currencyId }: TradesProps)
         trade={selectedTrade}
         assetId={assetId}
       />
-    </Paper>
+    </Box>
   )
 }

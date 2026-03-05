@@ -3,14 +3,14 @@ import { Box, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import {
-    Area,
-    CartesianGrid,
-    ComposedChart,
-    ReferenceLine,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Area,
+  CartesianGrid,
+  ComposedChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
 
 interface Props {
@@ -46,8 +46,8 @@ export default function RollingCagrChart({ data, size = 300 }: Props) {
 
   return (
     <Box>
-      <Typography variant="subtitle2" fontWeight={600} mb={1}>
-        CAGR Rolling 12 meses
+      <Typography variant="subtitle2" fontWeight={600} mb={1} ml={1}>
+        Retorno Anualizado Móvel (12 meses)
       </Typography>
       <ResponsiveContainer width="100%" height={size}>
         <ComposedChart data={chartData} margin={{ left: 10 }}>
