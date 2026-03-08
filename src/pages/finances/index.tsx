@@ -3,6 +3,7 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import CategoryIcon from '@mui/icons-material/Category'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import SaveIcon from '@mui/icons-material/Save'
 import {
     Alert,
@@ -10,6 +11,9 @@ import {
     Button,
     Chip,
     CircularProgress,
+    Dialog,
+    DialogContent,
+    DialogTitle,
     IconButton,
     LinearProgress,
     ListSubheader,
@@ -58,6 +62,7 @@ import {
     fetchMonthlyBreakdown,
     fetchMonthlyGoals,
     fetchYearlySummary,
+    updateCategoryGoal,
     updateExpense,
     updateIncome,
     updateSubcategoryGoal,
@@ -65,8 +70,8 @@ import {
     type FinanceExpense,
     type FinanceIncome,
     type MonthlyBreakdown,
+    type MonthlyGoalsResponse,
     type MonthlySummary,
-    type SubcategoryGoalProgress,
 } from '@/lib/financeApi'
 import CategoryManagerDialog from './CategoryManagerDialog'
 
@@ -88,7 +93,7 @@ export default function FinancesPage() {
   const [incomes, setIncomes] = useState<FinanceIncome[]>([])
   const [yearlySummary, setYearlySummary] = useState<MonthlySummary[]>([])
   const [breakdown, setBreakdown] = useState<MonthlyBreakdown | null>(null)
-  const [goals, setGoals] = useState<SubcategoryGoalProgress[]>([])
+  const [goals, setGoals] = useState<MonthlyGoalsResponse | null>(null)
 
   const [loadingYear, setLoadingYear] = useState(true)
   const [loadingMonth, setLoadingMonth] = useState(true)
@@ -127,7 +132,14 @@ export default function FinancesPage() {
   // Main page tab
   const [mainTab, setMainTab] = useState(1)
 
-  // Goal form state
+  // Goal editing state
+  const [editingGoalCatId, setEditingGoalCatId] = useState<number | null>(null)
+  const [editingGoalSubId, setEditingGoalSubId] = useState<number | null>(null)
+  const [editGoalAmount, setEditGoalAmount] = useState('')
+  const [savingGoal, setSavingGoal] = useState(false)
+
+  // New goal form state
+  const [newGoalType, setNewGoalType] = useState<'category' | 'subcategory'>('category')
   const [goalCategoryId, setGoalCategoryId] = useState<number | ''>('')
   const [goalSubcategoryId, setGoalSubcategoryId] = useState<number | ''>('')
   const [goalAmount, setGoalAmount] = useState('')
@@ -135,8 +147,9 @@ export default function FinancesPage() {
   // Pie chart tab
   const [pieTab, setPieTab] = useState(0)
 
-  // Dialog
+  // Dialogs
   const [catDialogOpen, setCatDialogOpen] = useState(false)
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false)
 
   // Snackbar
   const [snack, setSnack] = useState<{ msg: string; severity: 'success' | 'error' } | null>(null)
@@ -315,33 +328,46 @@ export default function FinancesPage() {
   const pieSubData = useMemo(() =>
     (breakdown?.by_subcategory ?? []).map((s) => ({ name: s.subcategory, value: s.total })), [breakdown])
 
-  const existingGoals = useMemo(
-    () => goals.filter((g) => g.goal_amount > 0),
+  const goalCategoryIds = useMemo(
+    () => new Set((goals?.categories ?? []).map((c) => c.category_id)),
     [goals],
   )
 
-  const goalSubcategoryIds = useMemo(
-    () => new Set(existingGoals.map((g) => g.subcategory_id)),
-    [existingGoals],
+  const availableGoalCategories = useMemo(
+    () => categories.filter((c) => !goalCategoryIds.has(c.id)),
+    [categories, goalCategoryIds],
   )
 
   const availableGoalSubcategories = useMemo(() => {
     if (!goalCategoryId) return []
     const category = categories.find((c) => c.id === goalCategoryId)
     if (!category) return []
-    return category.subcategories.filter((s) => !goalSubcategoryIds.has(s.id))
-  }, [categories, goalCategoryId, goalSubcategoryIds])
+    const existingSubIds = new Set(
+      (goals?.categories ?? [])
+        .find((c) => c.category_id === goalCategoryId)
+        ?.subcategories.map((s) => s.subcategory_id) ?? [],
+    )
+    return category.subcategories.filter((s) => !existingSubIds.has(s.id))
+  }, [categories, goalCategoryId, goals])
 
   const handleCreateGoal = async () => {
     const amount = Number(goalAmount)
-    if (!goalSubcategoryId || !Number.isFinite(amount) || amount <= 0) {
-      setSnack({ msg: 'Preencha categoria, subcategoria e valor válido', severity: 'error' })
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setSnack({ msg: 'Preencha um valor válido', severity: 'error' })
       return
     }
 
     setCreatingGoal(true)
     try {
-      await updateSubcategoryGoal(goalSubcategoryId, amount)
+      if (newGoalType === 'category' && goalCategoryId) {
+        await updateCategoryGoal(goalCategoryId, amount)
+      } else if (newGoalType === 'subcategory' && goalSubcategoryId) {
+        await updateSubcategoryGoal(goalSubcategoryId as number, amount)
+      } else {
+        setSnack({ msg: 'Selecione o destino da meta', severity: 'error' })
+        setCreatingGoal(false)
+        return
+      }
       setGoalCategoryId('')
       setGoalSubcategoryId('')
       setGoalAmount('')
@@ -351,6 +377,29 @@ export default function FinancesPage() {
       setSnack({ msg: 'Erro ao criar meta', severity: 'error' })
     } finally {
       setCreatingGoal(false)
+    }
+  }
+
+  const handleSaveGoalEdit = async (type: 'category' | 'subcategory', id: number) => {
+    const amount = Number(editGoalAmount)
+    setSavingGoal(true)
+    try {
+      if (type === 'category') {
+        await updateCategoryGoal(id, amount > 0 ? amount : null)
+      } else {
+        await updateSubcategoryGoal(id, amount > 0 ? amount : null)
+      }
+      setEditingGoalCatId(null)
+      setEditingGoalSubId(null)
+      const [, gl] = await Promise.all([
+        loadCategories(),
+        fetchMonthlyGoals(year, month),
+      ])
+      setGoals(gl)
+    } catch {
+      setSnack({ msg: 'Erro ao atualizar meta', severity: 'error' })
+    } finally {
+      setSavingGoal(false)
     }
   }
 
@@ -374,9 +423,10 @@ export default function FinancesPage() {
         <Tabs value={mainTab} onChange={(_, v) => setMainTab(v)}>
           <Tab label="Ganhos vs Gastos no Ano" />
           <Tab label="Detalhe do Mês" />
+          <Tab label="Metas" />
         </Tabs>
         <Box display="flex" alignItems="center" gap={1}>
-          {mainTab === 1 && (
+          {(mainTab === 1 || mainTab === 2) && (
             <Select size="small" value={month} onChange={(e) => setMonth(Number(e.target.value))} sx={{ minWidth: 100 }}>
               {MONTHS.map((m, i) => <MenuItem key={i} value={i + 1}>{m}</MenuItem>)}
             </Select>
@@ -710,12 +760,9 @@ export default function FinancesPage() {
               <Tabs value={pieTab} onChange={(_, v) => setPieTab(v)} variant="fullWidth" sx={{ mb: 1 }}>
                 <Tab label="Por categoria" />
                 <Tab label="Por subcategoria" />
-                <Tab label="Metas" />
               </Tabs>
 
-              {pieTab !== 2 && (
-                <>
-                  {(pieTab === 0 ? pieCatData : pieSubData).length === 0 ? (
+              {(pieTab === 0 ? pieCatData : pieSubData).length === 0 ? (
                     <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
                       Sem dados
                     </Typography>
@@ -754,100 +801,313 @@ export default function FinancesPage() {
                       </Box>
                     ))}
                   </Stack>
-                </>
-              )}
-
-              {pieTab === 2 && (
-                <Stack spacing={1.25}>
-                  <Paper variant="outlined" sx={{ p: 1.25 }}>
-                    <Typography variant="subtitle2" mb={1}>Nova meta</Typography>
-                    <Stack spacing={1}>
-                      <Select
-                        size="small"
-                        value={goalCategoryId}
-                        displayEmpty
-                        onChange={(e) => {
-                          setGoalCategoryId(e.target.value as number)
-                          setGoalSubcategoryId('')
-                        }}
-                      >
-                        <MenuItem value="">Categoria</MenuItem>
-                        {categories.map((c) => (
-                          <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-                        ))}
-                      </Select>
-
-                      <Select
-                        size="small"
-                        value={goalSubcategoryId}
-                        displayEmpty
-                        onChange={(e) => setGoalSubcategoryId(e.target.value as number)}
-                        disabled={!goalCategoryId}
-                      >
-                        <MenuItem value="">Subcategoria</MenuItem>
-                        {availableGoalSubcategories.map((s) => (
-                          <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-                        ))}
-                      </Select>
-
-                      <TextField
-                        size="small"
-                        label="Meta (R$)"
-                        type="number"
-                        value={goalAmount}
-                        onChange={(e) => setGoalAmount(e.target.value)}
-                      />
-
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleCreateGoal}
-                        disabled={creatingGoal || !goalCategoryId || !goalSubcategoryId || !goalAmount}
-                      >
-                        {creatingGoal ? 'Criando...' : 'Criar meta'}
-                      </Button>
-                    </Stack>
-                  </Paper>
-
-                  {existingGoals.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary">Sem metas cadastradas.</Typography>
-                  ) : (
-                    existingGoals.map((goal) => (
-                      <Paper key={goal.subcategory_id} variant="outlined" sx={{ p: 1.25 }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
-                          <Typography variant="subtitle2">{goal.subcategory_name}</Typography>
-                          <Typography variant="caption" color="text.secondary">{goal.category_name}</Typography>
-                        </Box>
-
-                        <LinearProgress
-                          variant="determinate"
-                          value={Math.min(goal.progress_percent, 100)}
-                          color={goal.is_over_goal ? 'error' : 'primary'}
-                          sx={{ height: 8, borderRadius: 4, mb: 0.75 }}
-                        />
-                        <Box display="flex" justifyContent="space-between" mb={0.5}>
-                          <Typography variant="caption" color={goal.is_over_goal ? 'error.main' : 'text.secondary'}>
-                            {goal.progress_percent.toFixed(1)}% usado ({fmt(goal.spent_amount)} / {fmt(goal.goal_amount)})
-                          </Typography>
-                          <Typography variant="caption" color={goal.is_over_goal ? 'error.main' : 'text.secondary'}>
-                            {goal.is_over_goal ? `Passou ${fmt(Math.abs(goal.remaining_amount))}` : `Restam ${fmt(goal.remaining_amount)}`}
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" color={goal.per_day_available < 0 ? 'error.main' : 'text.secondary'}>
-                          Pode gastar por dia: {fmt(goal.per_day_available)}
-                          {goal.days_remaining > 0 ? ` (${goal.days_remaining} dias)` : ''}
-                        </Typography>
-                      </Paper>
-                    ))
-                  )}
-                </Stack>
-              )}
             </Paper>
           </Box>
         </Box>
       )}
         </>
       )}
+
+      {/* ═══ TAB 2 — METAS ═══ */}
+      {mainTab === 2 && (
+        <Box maxWidth={700} mx="auto">
+          {loadingMonth ? (
+            <Box display="flex" justifyContent="center" py={6}><CircularProgress /></Box>
+          ) : (
+            <Stack spacing={2}>
+              {/* Header with manage button */}
+              <Box display="flex" justifyContent="flex-end">
+                <Button size="small" variant="outlined" startIcon={<EditIcon />} onClick={() => setGoalDialogOpen(true)}>
+                  Gerenciar metas
+                </Button>
+              </Box>
+
+              {/* Monthly overview */}
+              {goals && goals.overview.goal_amount > 0 && (
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: goals.overview.is_over_goal ? 'error.dark' : 'primary.dark', borderRadius: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" mb={0.5} color="white">Mês</Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(goals.overview.progress_percent, 100)}
+                    sx={{
+                      height: 12, borderRadius: 6, mb: 1,
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      '& .MuiLinearProgress-bar': { bgcolor: goals.overview.is_over_goal ? '#ff6b6b' : '#69db7c' },
+                    }}
+                  />
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="white">
+                      {goals.overview.progress_percent.toFixed(1)}% — {fmt(goals.overview.spent_amount)} / {fmt(goals.overview.goal_amount)}
+                    </Typography>
+                    <Typography variant="body2" fontWeight="bold" color="white">
+                      {goals.overview.is_over_goal ? `Estourou ${fmt(Math.abs(goals.overview.remaining_amount))}` : `Restam ${fmt(goals.overview.remaining_amount)}`}
+                    </Typography>
+                  </Box>
+                  {goals.overview.days_remaining > 0 && !goals.overview.is_over_goal && (
+                    <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }} color="white">
+                      Pode gastar {fmt(goals.overview.per_day_available)}/dia ({goals.overview.days_remaining} dias restantes)
+                    </Typography>
+                  )}
+                </Paper>
+              )}
+
+              {/* Category goals with subcategories (read-only) */}
+              {(goals?.categories ?? []).map((cat) => (
+                <Paper key={cat.category_id} variant="outlined" sx={{ p: 2 }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                    <Typography variant="subtitle2" fontWeight="bold">{cat.category_name}</Typography>
+                    {editingGoalCatId === cat.category_id ? (
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <Typography variant="body2" color="text.secondary">{fmt(cat.spent_amount)} /</Typography>
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={editGoalAmount}
+                          onChange={(e) => setEditGoalAmount(e.target.value)}
+                          variant="standard"
+                          sx={{ width: 90, '& .MuiInput-underline:before': { display: 'none' }, '& .MuiInput-underline:after': { display: 'none' }, '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none' }, '& input[type=number]': { MozAppearance: 'textfield' } }}
+                          autoFocus
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleSaveGoalEdit('category', cat.category_id); if (e.key === 'Escape') setEditingGoalCatId(null) }}
+                          onBlur={() => handleSaveGoalEdit('category', cat.category_id)}
+                        />
+                      </Box>
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        color={cat.is_over_goal ? 'error.main' : 'text.secondary'}
+                        fontWeight="bold"
+                        sx={{ cursor: 'pointer', '&:hover': { opacity: 0.7 } }}
+                        onDoubleClick={() => { setEditingGoalCatId(cat.category_id); setEditingGoalSubId(null); setEditGoalAmount(String(cat.goal_amount)) }}
+                      >
+                        {fmt(cat.spent_amount)} / {fmt(cat.goal_amount)}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(cat.progress_percent, 100)}
+                    color={cat.is_over_goal ? 'error' : 'primary'}
+                    sx={{ height: 8, borderRadius: 4, mb: 0.5 }}
+                  />
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography variant="caption" color={cat.is_over_goal ? 'error.main' : 'text.secondary'}>
+                      {cat.progress_percent.toFixed(1)}%
+                    </Typography>
+                    <Typography variant="caption" color={cat.is_over_goal ? 'error.main' : 'text.secondary'}>
+                      {cat.is_over_goal ? `Passou ${fmt(Math.abs(cat.remaining_amount))}` : `Restam ${fmt(cat.remaining_amount)}`}
+                    </Typography>
+                  </Box>
+
+                  {cat.subcategories.length > 0 && (
+                    <Stack spacing={0.75} ml={2} sx={{ borderLeft: '2px solid', borderColor: 'divider', pl: 2 }}>
+                      {cat.subcategories.map((sub) => (
+                        <Box key={sub.subcategory_id}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center">
+                            <Typography variant="caption">{sub.subcategory_name}</Typography>
+                            {editingGoalSubId === sub.subcategory_id ? (
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                <Typography variant="caption" color="text.secondary">{fmt(sub.spent_amount)} /</Typography>
+                                <TextField
+                                  size="small"
+                                  type="number"
+                                  value={editGoalAmount}
+                                  onChange={(e) => setEditGoalAmount(e.target.value)}
+                                  variant="standard"
+                                  sx={{ width: 70, '& input': { fontSize: '0.75rem' }, '& .MuiInput-underline:before': { display: 'none' }, '& .MuiInput-underline:after': { display: 'none' }, '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none' }, '& input[type=number]': { MozAppearance: 'textfield' } }}
+                                  autoFocus
+                                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveGoalEdit('subcategory', sub.subcategory_id); if (e.key === 'Escape') setEditingGoalSubId(null) }}
+                                  onBlur={() => handleSaveGoalEdit('subcategory', sub.subcategory_id)}
+                                />
+                              </Box>
+                            ) : (
+                              <Typography
+                                variant="caption"
+                                color={sub.is_over_goal ? 'error.main' : 'text.secondary'}
+                                sx={{ cursor: 'pointer', '&:hover': { opacity: 0.7 } }}
+                                onDoubleClick={() => { setEditingGoalSubId(sub.subcategory_id); setEditingGoalCatId(null); setEditGoalAmount(String(sub.goal_amount)) }}
+                              >
+                                {fmt(sub.spent_amount)} / {fmt(sub.goal_amount)}
+                              </Typography>
+                            )}
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={Math.min(sub.progress_percent, 100)}
+                            color={sub.is_over_goal ? 'error' : 'inherit'}
+                            sx={{ height: 4, borderRadius: 2, opacity: 0.7 }}
+                          />
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
+
+                  {cat.days_remaining > 0 && !cat.is_over_goal && (
+                    <Typography variant="caption" color="text.secondary" mt={0.75} display="block">
+                      {fmt(cat.per_day_available)}/dia ({cat.days_remaining} dias)
+                    </Typography>
+                  )}
+                </Paper>
+              ))}
+
+              {(goals?.categories ?? []).length === 0 && (
+                <Box textAlign="center" py={4}>
+                  <Typography variant="body2" color="text.secondary" mb={1}>Nenhuma meta cadastrada.</Typography>
+                  <Button size="small" variant="contained" startIcon={<EditIcon />} onClick={() => setGoalDialogOpen(true)}>
+                    Criar metas
+                  </Button>
+                </Box>
+              )}
+            </Stack>
+          )}
+        </Box>
+      )}
+
+      {/* ═══ GOAL MANAGER DIALOG ═══ */}
+      <Dialog open={goalDialogOpen} onClose={() => setGoalDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Gerenciar Metas
+          <IconButton size="small" onClick={() => setGoalDialogOpen(false)}><CloseIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            {/* Existing goals - editable */}
+            {(goals?.categories ?? []).map((cat) => (
+              <Paper key={cat.category_id} variant="outlined" sx={{ p: 1.5 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                  {editingGoalCatId === cat.category_id ? (
+                    <Box display="flex" alignItems="center" gap={0.5} flex={1}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editGoalAmount}
+                        onChange={(e) => setEditGoalAmount(e.target.value)}
+                        variant="standard"
+                        sx={{ width: 120 }}
+                        placeholder="Meta (R$)"
+                      />
+                      <IconButton size="small" onClick={() => handleSaveGoalEdit('category', cat.category_id)} disabled={savingGoal}>
+                        <SaveIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => setEditingGoalCatId(null)}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ) : (
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="bold"
+                      sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                      onClick={() => { setEditingGoalCatId(cat.category_id); setEditingGoalSubId(null); setEditGoalAmount(String(cat.goal_amount)) }}
+                    >
+                      {cat.category_name} — {fmt(cat.goal_amount)}
+                    </Typography>
+                  )}
+                </Box>
+
+                {cat.subcategories.length > 0 && (
+                  <Stack spacing={0.5} ml={2} sx={{ borderLeft: '2px solid', borderColor: 'divider', pl: 1.5 }}>
+                    {cat.subcategories.map((sub) => (
+                      <Box key={sub.subcategory_id} display="flex" justifyContent="space-between" alignItems="center">
+                        {editingGoalSubId === sub.subcategory_id ? (
+                          <Box display="flex" alignItems="center" gap={0.5} flex={1}>
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={editGoalAmount}
+                              onChange={(e) => setEditGoalAmount(e.target.value)}
+                              variant="standard"
+                              sx={{ width: 100 }}
+                              placeholder="Meta"
+                            />
+                            <IconButton size="small" onClick={() => handleSaveGoalEdit('subcategory', sub.subcategory_id)} disabled={savingGoal}>
+                              <SaveIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => setEditingGoalSubId(null)}>
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                            onClick={() => { setEditingGoalSubId(sub.subcategory_id); setEditingGoalCatId(null); setEditGoalAmount(String(sub.goal_amount)) }}
+                          >
+                            {sub.subcategory_name} — {fmt(sub.goal_amount)}
+                          </Typography>
+                        )}
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+            ))}
+
+            {/* New goal form */}
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Typography variant="subtitle2" mb={1}>Nova meta</Typography>
+              <Stack spacing={1}>
+                <Tabs
+                  value={newGoalType}
+                  onChange={(_, v) => { setNewGoalType(v); setGoalCategoryId(''); setGoalSubcategoryId('') }}
+                  variant="fullWidth"
+                  sx={{ minHeight: 32, '& .MuiTab-root': { minHeight: 32, py: 0.5, fontSize: '0.75rem' } }}
+                >
+                  <Tab label="Categoria" value="category" />
+                  <Tab label="Subcategoria" value="subcategory" />
+                </Tabs>
+
+                <Select
+                  size="small"
+                  value={goalCategoryId}
+                  displayEmpty
+                  onChange={(e) => {
+                    setGoalCategoryId(e.target.value as number)
+                    setGoalSubcategoryId('')
+                  }}
+                >
+                  <MenuItem value="">Categoria</MenuItem>
+                  {(newGoalType === 'category' ? availableGoalCategories : categories).map((c) => (
+                    <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                  ))}
+                </Select>
+
+                {newGoalType === 'subcategory' && (
+                  <Select
+                    size="small"
+                    value={goalSubcategoryId}
+                    displayEmpty
+                    onChange={(e) => setGoalSubcategoryId(e.target.value as number)}
+                    disabled={!goalCategoryId}
+                  >
+                    <MenuItem value="">Subcategoria</MenuItem>
+                    {availableGoalSubcategories.map((s) => (
+                      <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+
+                <TextField
+                  size="small"
+                  label="Meta (R$)"
+                  type="number"
+                  value={goalAmount}
+                  onChange={(e) => setGoalAmount(e.target.value)}
+                />
+
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={handleCreateGoal}
+                  disabled={creatingGoal || !goalCategoryId || (newGoalType === 'subcategory' && !goalSubcategoryId) || !goalAmount}
+                >
+                  {creatingGoal ? 'Criando...' : 'Criar meta'}
+                </Button>
+              </Stack>
+            </Paper>
+          </Stack>
+        </DialogContent>
+      </Dialog>
 
       <CategoryManagerDialog
         open={catDialogOpen}

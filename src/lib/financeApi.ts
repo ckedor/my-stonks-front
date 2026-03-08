@@ -12,6 +12,7 @@ export interface FinanceSubcategory {
 export interface FinanceCategory {
   id: number
   name: string
+  goal_amount?: number | null
   subcategories: FinanceSubcategory[]
 }
 
@@ -64,6 +65,16 @@ export interface MonthlyBreakdown {
 export interface SubcategoryGoalProgress {
   subcategory_id: number
   subcategory_name: string
+  goal_amount: number
+  spent_amount: number
+  remaining_amount: number
+  progress_percent: number
+  per_day_available: number
+  days_remaining: number
+  is_over_goal: boolean
+}
+
+export interface CategoryGoalProgress {
   category_id: number
   category_name: string
   goal_amount: number
@@ -73,6 +84,22 @@ export interface SubcategoryGoalProgress {
   per_day_available: number
   days_remaining: number
   is_over_goal: boolean
+  subcategories: SubcategoryGoalProgress[]
+}
+
+export interface GoalOverview {
+  goal_amount: number
+  spent_amount: number
+  remaining_amount: number
+  progress_percent: number
+  per_day_available: number
+  days_remaining: number
+  is_over_goal: boolean
+}
+
+export interface MonthlyGoalsResponse {
+  overview: GoalOverview
+  categories: CategoryGoalProgress[]
 }
 
 // ── API calls ──────────────────────────────────────────────────
@@ -102,6 +129,9 @@ export const deleteSubcategory = (id: number) =>
 
 export const updateSubcategoryGoal = (id: number, goal_amount: number | null) =>
   api.put<FinanceSubcategory>(`/finances/subcategories/${id}/goal`, { goal_amount }).then((r) => r.data)
+
+export const updateCategoryGoal = (id: number, goal_amount: number | null) =>
+  api.put<FinanceCategory>(`/finances/categories/${id}/goal`, { goal_amount }).then((r) => r.data)
 
 // Expenses
 export const fetchExpenses = (year: number, month: number) =>
@@ -137,4 +167,4 @@ export const fetchMonthlyBreakdown = (year: number, month: number) =>
   api.get<MonthlyBreakdown>('/finances/summary/monthly', { params: { year, month } }).then((r) => r.data)
 
 export const fetchMonthlyGoals = (year: number, month: number) =>
-  api.get<SubcategoryGoalProgress[]>('/finances/summary/monthly-goals', { params: { year, month } }).then((r) => r.data)
+  api.get<MonthlyGoalsResponse>('/finances/summary/monthly-goals', { params: { year, month } }).then((r) => r.data)
